@@ -25,6 +25,7 @@ var animationState = {
     animationId: null,
     startTime: 0,
     pausedTime: 0,
+    currentSegmentStartTime: null, // 当前段的起始时间
     vehicleMarker: null,
     visitedPoints: [],
     trailLine: null,
@@ -88,36 +89,42 @@ function initMap() {
 
 // 初始化路线
 function initRoutes() {
-    // G219国道路线 - 红色
+    // G219国道路线 - 现代蓝
     g219Layer = L.polyline(
         G219Locations.map(loc => [loc.lat, loc.lng]),
         { 
-            color: '#e74c3c', 
-            weight: 4, 
-            opacity: 0.8, 
-            name: 'G219'
+            color: '#3498db', // 现代蓝
+            weight: 6, 
+            opacity: 0.9, 
+            name: 'G219',
+            lineCap: 'round',
+            lineJoin: 'round'
         }
     ).addTo(map);
     
-    // G331国道路线 - 蓝色
+    // G331国道路线 - 深蓝灰
     g331Layer = L.polyline(
         G331Locations.map(loc => [loc.lat, loc.lng]),
         { 
-            color: '#3498db', 
-            weight: 4, 
-            opacity: 0.8, 
-            name: 'G331'
+            color: '#2c3e50', // 深蓝灰
+            weight: 6, 
+            opacity: 0.9, 
+            name: 'G331',
+            lineCap: 'round',
+            lineJoin: 'round'
         }
     ).addTo(map);
     
-    // G228国道路线 - 绿色
+    // G228国道路线 - 红色
     g228Layer = L.polyline(
         G228Locations.map(loc => [loc.lat, loc.lng]),
         { 
-            color: '#27ae60', 
-            weight: 4, 
-            opacity: 0.8, 
-            name: 'G228'
+            color: '#e74c3c', // 红色
+            weight: 6, 
+            opacity: 0.9, 
+            name: 'G228',
+            lineCap: 'round',
+            lineJoin: 'round'
         }
     ).addTo(map);
 }
@@ -129,17 +136,17 @@ function initMarkers() {
     
     // 添加G219国道标记点
     if (document.getElementById('g219').checked) {
-        addMarkers(G219Locations, '#e74c3c');
+        addMarkers(G219Locations, '#3498db');
     }
     
     // 添加G331国道标记点
     if (document.getElementById('g331').checked) {
-        addMarkers(G331Locations, '#3498db');
+        addMarkers(G331Locations, '#2c3e50');
     }
     
     // 添加G228国道标记点
     if (document.getElementById('g228').checked) {
-        addMarkers(G228Locations, '#27ae60');
+        addMarkers(G228Locations, '#e74c3c');
     }
 }
 
@@ -151,22 +158,22 @@ function addMarkers(locations, color) {
             title: `${loc.name} (${loc.province})`
         });
         
-        // 创建自定义图标
+        // 创建现代自定义图标
         const icon = L.divIcon({
             className: 'custom-div-icon',
-            html: `<div style="background-color: ${color}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 14px; font-weight: bold; text-align: center;">${loc.name}</div>`,
+            html: `<div style="background-color: ${color}; color: white; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: bold; text-align: center; border: 2px solid ${color}; font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif; box-shadow: 0 2px 5px rgba(0,0,0,0.15); text-shadow: none;">${loc.name}</div>`,
             // 移除固定宽度，让弹出框根据内容自适应
-            iconAnchor: [35, 35]
+            iconAnchor: [40, 40]
         });
         
         marker.setIcon(icon);
         
-        // 添加弹出信息
+        // 添加现代弹出信息
         marker.bindPopup(`
-            <div style="font-size: 14px;">
-                <strong>${loc.name}</strong><br>
-                省份: ${loc.province}<br>
-                坐标: ${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}
+            <div style="font-size: 14px; font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif; background-color: #f8f9fa; border: 1px solid #bdc3c7; border-radius: 8px; padding: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <div style="font-size: 16px; font-weight: bold; color: ${color}; border-bottom: 1px solid #ecf0f1; padding-bottom: 5px; margin-bottom: 5px; text-align: center;">${loc.name}</div>
+                <div style="margin-bottom: 3px;">省份: <span style="color: #2c3e50;">${loc.province}</span></div>
+                <div>坐标: ${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}</div>
             </div>
         `);
         
@@ -215,9 +222,9 @@ function generateLocationsList() {
     
     // 创建按路线分类的地点列表
     const routes = [
-        { id: 'g219', name: 'G219 喀纳斯-东兴', color: '#e74c3c', locations: G219Locations },
-        { id: 'g331', name: 'G331 丹东-阿勒泰', color: '#3498db', locations: G331Locations },
-        { id: 'g228', name: 'G228 丹东-东兴', color: '#27ae60', locations: G228Locations }
+        { id: 'g219', name: 'G219 喀纳斯-东兴', color: '#b22222', locations: G219Locations },
+        { id: 'g331', name: 'G331 丹东-阿勒泰', color: '#4a6fa5', locations: G331Locations },
+        { id: 'g228', name: 'G228 丹东-东兴', color: '#d4a017', locations: G228Locations }
     ];
     
     routes.forEach(route => {
@@ -225,11 +232,16 @@ function generateLocationsList() {
         routeSection.className = `route-section route-${route.id}`;
         routeSection.style.marginBottom = '1rem';
         
-        // 路线标题
+        // 路线标题 - 中国风印章样式
         const routeTitle = document.createElement('h4');
         routeTitle.textContent = route.name;
         routeTitle.style.color = route.color;
         routeTitle.style.marginBottom = '0.5rem';
+        routeTitle.style.fontFamily = "'KaiTi', 'STKaiti', '楷体', serif";
+        routeTitle.style.textAlign = 'center';
+        routeTitle.style.padding = '5px';
+        routeTitle.style.borderBottom = '2px solid ' + route.color;
+        routeTitle.style.textShadow = '1px 1px 2px rgba(0,0,0,0.2)';
         routeSection.appendChild(routeTitle);
         
         // 地点列表
@@ -242,21 +254,28 @@ function generateLocationsList() {
             li.className = 'location-item';
             li.textContent = `${loc.name} (${loc.province})`;
             li.style.cursor = 'pointer';
-            li.style.padding = '0.3rem 0.5rem';
-            li.style.marginBottom = '0.2rem';
-            li.style.borderRadius = '3px';
-            li.style.backgroundColor = '#f9f9f9';
+            li.style.padding = '0.4rem 0.8rem';
+            li.style.marginBottom = '0.3rem';
+            li.style.borderRadius = '2px';
+            li.style.backgroundColor = '#f8f0e3';
             li.style.transition = 'all 0.2s';
+            li.style.fontFamily = "'SimSun', 'STSong', '宋体', serif";
+            li.style.border = '1px solid #e0d0c0';
+            li.style.boxShadow = '1px 1px 2px rgba(0,0,0,0.1)';
             
             // 添加悬停效果
             li.addEventListener('mouseenter', function() {
-                this.style.backgroundColor = `${route.color}20`; // 添加透明度的颜色
-                this.style.transform = 'translateX(3px)';
+                this.style.backgroundColor = '#f0e0d0';
+                this.style.transform = 'translateX(5px)';
+                this.style.boxShadow = '2px 2px 4px rgba(0,0,0,0.2)';
+                this.style.borderColor = route.color;
             });
             
             li.addEventListener('mouseleave', function() {
-                this.style.backgroundColor = '#f9f9f9';
+                this.style.backgroundColor = '#f8f0e3';
                 this.style.transform = 'translateX(0)';
+                this.style.boxShadow = '1px 1px 2px rgba(0,0,0,0.1)';
+                this.style.borderColor = '#e0d0c0';
             });
             
             // 点击跳转到该地点并设置为模拟行程起点
@@ -266,10 +285,14 @@ function generateLocationsList() {
                 // 移除其他活跃状态
                 document.querySelectorAll('.location-item.active').forEach(item => {
                     item.classList.remove('active');
+                    item.style.backgroundColor = '#f8f0e3';
+                    item.style.borderColor = '#e0d0c0';
                 });
                 
                 // 添加活跃状态
                 this.classList.add('active');
+                this.style.backgroundColor = '#e0d0c0';
+                this.style.borderColor = route.color;
                 
                 // 设置为模拟行程起点
                 const startLocationSelect = document.getElementById('start-location');
@@ -542,12 +565,13 @@ function createVehicleMarker() {
     
     const startPoint = routeData[0];
     
-    // 创建车辆图标
+    // 创建中国风车辆图标 - 古代马车样式
     const vehicleIcon = L.divIcon({
         className: 'vehicle-icon',
-        html: '<i class="fas fa-car"></i>',
-        iconSize: [40, 40],
-        iconAnchor: [20, 20]
+        html: '<div style="font-size: 24px; color: #b22222; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🚂</div>',
+        iconSize: [50, 50],
+        iconAnchor: [25, 25],
+        className: 'chinese-vehicle-icon'
     });
     
     // 创建车辆标记
@@ -556,12 +580,12 @@ function createVehicleMarker() {
         title: '模拟车辆'
     }).addTo(map);
     
-    // 添加车辆弹出信息
+    // 添加中国风车辆弹出信息
     animationState.vehicleMarker.bindPopup(`
-        <div style="text-align: center;">
-            <h4>🚗 模拟车辆</h4>
-            <p>当前位置: ${startPoint.name}</p>
-            <p>${startPoint.province}</p>
+        <div style="text-align: center; font-family: 'SimSun', 'STSong', '宋体', serif; background-color: #f8f0e3; border: 1px solid #d4a017; border-radius: 4px; padding: 10px; box-shadow: 3px 3px 6px rgba(0,0,0,0.2);">
+            <div style="font-size: 16px; font-weight: bold; color: #b22222; margin-bottom: 5px;">🛤️ 行程模拟</div>
+            <div style="margin-bottom: 3px;">当前位置: <span style="color: #4a6fa5;">${startPoint.name}</span></div>
+            <div style="color: #4a6fa5;">${startPoint.province}</div>
         </div>
     `);
 }
@@ -576,15 +600,15 @@ function createTrailLine() {
     const routeData = getCurrentRouteData();
     if (routeData.length === 0) return;
     
-    // 创建轨迹线（初始为空）
+    // 创建中国风轨迹线 - 毛笔风格
     animationState.trailLine = L.polyline([], {
-        color: getCurrentRouteColor(),
-        weight: 6,
+        color: '#b22222', // 中国红
+        weight: 8,
         opacity: 0.9,
         className: 'trail-line',
         lineCap: 'round',
         lineJoin: 'round',
-        dashArray: '5,5'
+        dashArray: '10,5'
     }).addTo(map);
 }
 
@@ -672,26 +696,74 @@ function lerp(start, end, t) {
     return start + (end - start) * t;
 }
 
-// 语音播报函数
+// 语音播报函数 - 播报地点详情信息
 function speakLocation(location) {
-    if ('speechSynthesis' in window) {
+    // 添加防御性检查，确保location参数有效
+    if ('speechSynthesis' in window && location && location.name) {
+        // 获取地点详细信息
+        const locationInfo = getLocationInfo(location.name);
+        
         // 创建语音实例
         const speech = new SpeechSynthesisUtterance();
         
-        // 设置语音属性
-        // 处理特殊行政区划名称
-        const regionName = location.province === '新疆' ? `${location.province}维吾尔自治区` : 
-                          location.province === '西藏' ? `${location.province}自治区` : 
-                          location.province === '内蒙古' ? `${location.province}自治区` : 
-                          location.province === '宁夏' ? `${location.province}回族自治区` : 
-                          location.province === '广西' ? `${location.province}壮族自治区` : 
-                          `${location.province}省`;
+        // 构建语音文本，包含更多地点详情信息
+        let speechText = `现在您经过的是${location.name}，位于${locationInfo.province || location.province || ''}。`;
         
-        speech.text = `现在经过${location.name}，位于${regionName}。`;
+        // 添加风土人情信息（简明扼要）
+        if (locationInfo.culture && locationInfo.culture !== '暂无详细信息') {
+            // 提取风土人情的核心信息，控制长度
+            let cultureInfo = locationInfo.culture;
+            // 如果文本太长，截取前50个字符
+            if (cultureInfo.length > 50) {
+                cultureInfo = cultureInfo.substring(0, 50) + '...';
+            }
+            speechText += ` ${cultureInfo}`;
+        }
+        
+        // 添加美食信息
+        if (locationInfo.food && locationInfo.food !== '暂无详细信息') {
+            speechText += ` 特色美食有${locationInfo.food.replace('特色美食有', '').replace('等，', '等。')}`;
+        }
+        
+        // 添加主要旅游打卡点
+        if (Array.isArray(locationInfo.attractions) && locationInfo.attractions.length > 0) {
+            const mainAttractions = locationInfo.attractions.slice(0, 3).join('、'); // 最多播报3个景点
+            speechText += ` 主要景点有${mainAttractions}等。`;
+        }
+        
+        speech.text = speechText;
         speech.lang = 'zh-CN'; // 设置为中文
         speech.volume = 1; // 音量 (0 to 1)
-        speech.rate = 0.9; // 语速 (0.1 to 10)
+        speech.rate = 1.6; // 适当调整语速，使更多信息能清晰传达
         speech.pitch = 1; // 音调 (0 to 2)
+        
+        // 选择更有感情的语音
+        const voices = window.speechSynthesis.getVoices();
+        // 优先选择中文语音，尝试找到更自然的语音
+        const preferredVoices = voices.filter(voice => 
+            voice.lang === 'zh-CN' && 
+            (voice.localService || voice.name.includes('Natural') || voice.name.includes('Microsoft'))
+        );
+        
+        if (preferredVoices.length > 0) {
+            // 选择第一个找到的偏好语音
+            speech.voice = preferredVoices[0];
+        } else {
+            // 如果没有找到偏好语音，尝试选择任何中文语音
+            const chineseVoices = voices.filter(voice => voice.lang === 'zh-CN');
+            if (chineseVoices.length > 0) {
+                speech.voice = chineseVoices[0];
+            }
+        }
+        
+        // 语音结束事件 - 继续动画
+        speech.onend = function() {
+            // 语音播放完成后，继续动画
+            animationState.isRunning = true;
+            // 重置当前段起始时间，让动画从当前索引位置的下一段开始
+            animationState.currentSegmentStartTime = null;
+            animationState.animationId = requestAnimationFrame(animationLoop);
+        };
         
         // 播放语音
         window.speechSynthesis.speak(speech);
@@ -700,37 +772,56 @@ function speakLocation(location) {
 
 // 动画循环
 function animationLoop(timestamp) {
-    if (!animationState.startTime) {
-        animationState.startTime = timestamp - animationState.pausedTime;
+    const routeData = getCurrentRouteData();
+    const totalPoints = routeData.length - 1;
+    
+    // 如果是新的一段移动（刚从语音播报恢复或刚开始），重置该段的起始时间
+    if (!animationState.currentSegmentStartTime) {
+        animationState.currentSegmentStartTime = timestamp;
     }
     
-    const elapsed = timestamp - animationState.startTime;
-    const routeData = getCurrentRouteData();
+    // 计算当前段的已用时间（相对于该段开始的时间）
+    const segmentElapsed = timestamp - animationState.currentSegmentStartTime;
     
-    // 根据速度计算应该到达的位置
-    const duration = 300000 / animationState.speed; // 总动画时长（毫秒），速度越快时长越短（增加基础时长使速度更慢）
-    const progress = Math.min(elapsed / duration, 1);
+    // 计算每段移动的持续时间（根据速度）
+    const segmentDuration = (300000 / animationState.speed) / totalPoints; // 每段的时长
     
-    // 计算精确的位置（包括两个点之间的插值）
-    const totalPoints = routeData.length - 1;
-    const exactIndex = progress * totalPoints;
-    const currentIndex = Math.floor(exactIndex);
+    // 计算当前段内的进度（0到1之间）
+    const segmentProgress = Math.min(segmentElapsed / segmentDuration, 1);
+    
+    // 使用当前索引和段内进度计算精确位置
+    const currentIndex = animationState.currentIndex;
     const nextIndex = Math.min(currentIndex + 1, totalPoints);
-    const t = exactIndex - currentIndex;
+    const t = segmentProgress;
     
-    // 更新当前索引（用于UI显示和进度跟踪）
-    if (currentIndex !== animationState.currentIndex) {
-        animationState.currentIndex = currentIndex;
-        // 语音播报当前位置
-        const currentPoint = routeData[currentIndex];
-        speakLocation(currentPoint);
-        // 更新地点信息显示
-        updateLocationInfoDisplay(currentPoint.name);
+    // 检查当前段是否完成
+    if (segmentProgress >= 1 && currentIndex < totalPoints) {
+        // 移动到下一个索引
+        animationState.currentIndex++;
+        // 暂停动画，等待语音播报完成
+        animationState.isRunning = false;
+        // 重置当前段起始时间，准备下一段移动
+        animationState.currentSegmentStartTime = null;
+        
+        // 确保新索引在有效范围内
+        if (animationState.currentIndex >= 0 && animationState.currentIndex < routeData.length) {
+            // 语音播报当前位置
+            const currentPoint = routeData[animationState.currentIndex];
+            if (currentPoint && currentPoint.name) {
+                speakLocation(currentPoint);
+                // 更新地点信息显示
+                updateLocationInfoDisplay(currentPoint.name);
+            }
+        }
+        
+        // 注意：动画将在语音播报完成后的onend事件中继续
+        return; // 提前返回，等待语音播报完成
     }
     
     // 计算当前位置（两个点之间的插值）
-    const currentPoint = routeData[currentIndex];
-    const nextPoint = routeData[nextIndex];
+    // 添加防御性检查，确保索引有效
+    const currentPoint = routeData[currentIndex] || routeData[0];
+    const nextPoint = routeData[nextIndex] || routeData[Math.min(currentIndex + 1, routeData.length - 1)];
     
     const currentLat = lerp(currentPoint.lat, nextPoint.lat, t);
     const currentLng = lerp(currentPoint.lng, nextPoint.lng, t);
@@ -739,9 +830,7 @@ function animationLoop(timestamp) {
     updateVehiclePosition(currentLat, currentLng, currentPoint);
     
     // 检查动画是否结束
-    if (progress < 1 && animationState.isRunning) {
-        animationState.animationId = requestAnimationFrame(animationLoop);
-    } else if (progress >= 1) {
+    if (currentIndex >= totalPoints && segmentProgress >= 1) {
         // 动画结束
         animationState.isRunning = false;
         updateUIState();
@@ -749,6 +838,9 @@ function animationLoop(timestamp) {
         if (statusText) {
             statusText.textContent = '行程结束！';
         }
+    } else {
+        // 如果动画正在运行，或者需要继续执行（比如语音播报完成后），则继续请求下一帧
+        animationState.animationId = requestAnimationFrame(animationLoop);
     }
 }
 
@@ -760,8 +852,14 @@ function startAnimation() {
         return;
     }
     
+    // 重置动画状态
     animationState.totalPoints = routeData.length;
     animationState.currentIndex = 0;
+    animationState.startTime = null;
+    animationState.pausedTime = 0;
+    animationState.currentSegmentStartTime = null;
+    animationState.isRunning = true;
+    animationState.isPaused = false;
     
     // 初始化车辆和轨迹
     createVehicleMarker();
@@ -810,6 +908,7 @@ function resetAnimation() {
     animationState.currentIndex = 0;
     animationState.startTime = 0;
     animationState.pausedTime = 0;
+    animationState.currentSegmentStartTime = null;
     
     // 更新UI
     updateUIState();

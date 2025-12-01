@@ -8,37 +8,47 @@
     box-sizing: border-box;
 }
 
-/* 鲜艳配色方案 */
+/* 现代配色方案 */
 :root {
-    --primary-color: #ff4081; /* 亮粉色 */
-    --secondary-color: #2979ff; /* 亮蓝色 */
-    --accent-color: #ff5722; /* 橙红色 */
-    --success-color: #4caf50; /* 亮绿色 */
-    --warning-color: #ff9800; /* 亮橙色 */
-    --light-color: #ffffff;
-    --dark-color: #333333;
-    --white-color: #ffffff;
-    --light-gray: #f5f5f5;
-    --medium-gray: #e0e0e0;
-    --dark-gray: #757575;
-    --border-radius: 12px;
-    --shadow-sm: 0 2px 12px rgba(0,0,0,0.12);
-    --shadow-md: 0 6px 20px rgba(0,0,0,0.18);
-    --shadow-lg: 0 12px 36px rgba(0,0,0,0.24);
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* 现代色彩 */
+    --primary-color: #3498db; /* 蓝色 - 现代感强 */
+    --secondary-color: #2c3e50; /* 深蓝灰 - 专业感 */
+    --accent-color: #e74c3c; /* 红色 - 活力与强调 */
+    --success-color: #2ecc71; /* 绿色 - 清新与成功 */
+    --warning-color: #f39c12; /* 橙色 - 警示 */
+    --light-color: #f8f9fa; /* 浅灰白 - 现代简约 */
+    --dark-color: #2c3e50; /* 深灰蓝 - 现代深色 */
+    --white-color: #ffffff; /* 纯白 - 现代感 */
+    --light-gray: #ecf0f1; /* 浅灰 - 现代背景 */
+    --medium-gray: #bdc3c7; /* 中灰 - 现代边框 */
+    --dark-gray: #7f8c8d; /* 深灰 - 现代文本 */
+    
+    /* 现代装饰元素 */
+    --border-radius: 8px; /* 圆角 - 现代感 */
+    --shadow-sm: 0 2px 5px rgba(0,0,0,0.1); /* 现代阴影 */
+    --shadow-md: 0 4px 10px rgba(0,0,0,0.12); /* 现代阴影 */
+    --shadow-lg: 0 8px 20px rgba(0,0,0,0.15); /* 现代阴影 */
+    --transition: all 0.3s ease;
+    
+    /* 现代纹理 */
+    --chinese-pattern: none; /* 移除中国风图案 */
+    --paper-texture: none; /* 移除宣纸纹理 */
 }
 
 html, body {
-    font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
     line-height: 1.65;
     color: var(--dark-color);
     background-color: var(--light-gray);
+    background-image: var(--paper-texture);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     margin: 0;
     padding: 0;
     height: 100%;
     overflow: hidden;
+    /* 现代文字效果 */
+    text-shadow: none;
 }
 
 /* 滚动条美化 */
@@ -62,52 +72,68 @@ html, body {
     background: var(--dark-gray);
 }
 
-/* 头部样式 - 改为悬浮式 */
+/* 头部样式 - 现代风格 */
 header {
-    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color), var(--accent-color));
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     color: var(--white-color);
     text-align: center;
-    padding: 0.5rem 1rem;
+    padding: 0.6rem 1.5rem;
     box-shadow: var(--shadow-lg);
     position: absolute;
     top: 0;
-    left: 0;
-    right: 0;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 1001;
     overflow: hidden;
-    border-bottom: 3px solid var(--accent-color);
     transition: all 0.3s ease;
-    opacity: 0.9;
-}
-
-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYtMi42ODYgNi02cy0yLjY4Ni02LTYtNmMtMy4zMTQgMC02IDIuNjg2LTYgNnMyLjY4NiA2IDYgNnptMCAzMGMzLjMxNCAwIDYtMi42ODYgNi02cy0yLjY4Ni02LTYtNmMtMy4zMTQgMC02IDIuNjg2LTYgNnMyLjY4NiA2IDYgNnptLTE4LTMwYzMuMzE0IDAgNi0yLjY4NiA2LTZzLTIuNjg2LTYtNi02Yy0zLjMxNCAwLTYgMi42ODYtNiA2czIuNjg2IDYgNiA2em0wIDMwYzMuMzE0IDAgNi0yLjY4NiA2LTZzLTIuNjg2LTYtNi02Yy0zLjMxNCAwLTYgMi42ODYtNiA2czIuNjg2IDYgNiA2em0xOCAwYzMuMzE0IDAgNi0yLjY4NiA2LTZzLTIuNjg2LTYtNi02Yy0zLjMxNCAwLTYgMi42ODYtNiA2czIuNjg2IDYgNiA2eiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIi8+PC9nPjwvc3ZnPg==');
-    opacity: 0.3;
+    opacity: 0.95;
+    min-width: 70%;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    backdrop-filter: blur(10px);
 }
 
 header h1 {
-    font-size: 1.5rem;
-    font-weight: 800;
+    font-size: 1.3rem;
+    font-weight: 700;
     margin: 0;
     position: relative;
     z-index: 1;
-    text-shadow: 0 3px 8px rgba(0,0,0,0.2);
-    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    letter-spacing: 2px;
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+}
+
+header .header-subtitle {
+    margin: 0.2rem 0;
+}
+
+header .header-subtitle .modern-border {
+    padding: 2px 10px;
+    margin: 0 5px;
+    font-size: 0.7rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
 }
 
 header p {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     opacity: 0.95;
     position: relative;
     z-index: 1;
     max-width: 100%;
-    margin: 0.2rem auto 0;
+    margin: 0.1rem auto 0;
+    letter-spacing: 1px;
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+}
+
+.header-decoration {
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+    border-radius: 2px;
+    opacity: 0.8;
+    margin: 2px 0;
 }
 
 /* 主容器样式 */
@@ -185,46 +211,36 @@ header p {
     transform-origin: top right;
 }
 
-/* 面板头部样式 */
+/* 面板头部样式 - 现代风格 */
 .panel-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 12px;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+    padding: 10px 15px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     color: var(--white-color);
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
-    border-bottom: 3px solid var(--accent-color);
-}
-
-.panel-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYtMi42ODYgNi02cy0yLjY4Ni02LTYtNmMtMy4zMTQgMC02IDIuNjg2LTYgNnMyLjY4NiA2IDYgNnptMCAzMGMzLjMxNCAwIDYtMi42ODYgNi02cy0yLjY4Ni02LTYtNmMtMy4zMTQgMC02IDIuNjg2LTYgNnMyLjY4NiA2IDYgNnptLTE4LTMwYzMuMzE0IDAgNi0yLjY4NiA2LTZzLTIuNjg2LTYtNi02Yy0zLjMxNCAwLTYgMi42ODYtNiA2czIuNjg2IDYgNiA2em0wIDMwYzMuMzE0IDAgNi0yLjY4NiA2LTZzLTIuNjg2LTYtNi02Yy0zLjMxNCAwLTYgMi42ODYtNiA2czIuNjg2IDYgNiA2em0xOCAwYzMuMzE0IDAgNi0yLjY4NiA2LTZzLTIuNjg2LTYtNi02Yy0zLjMxNCAwLTYgMi42ODYtNiA2czIuNjg2IDYgNiA2eiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIi8+PC9nPjwvc3ZnPg==');
-    opacity: 0.3;
-}
-
-.panel-header:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    box-shadow: var(--shadow-sm);
 }
 
 .panel-header h2 {
     margin: 0;
-    font-size: 0.8rem;
-    font-weight: 500;
-    letter-spacing: 0.2px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
     position: relative;
     z-index: 1;
     text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+}
+
+.panel-header:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
 }
 
 /* 切换按钮样式 */
@@ -251,18 +267,31 @@ header p {
     transform: scale(1.1);
 }
 
-/* 面板内容样式 */
+/* 面板内容样式 - 现代风格 */
 .panel-content {
     padding: 15px;
     overflow-y: auto; /* 允许内容垂直滚动 */
     position: relative;
-    background: white;
+    background: var(--light-color);
     transform-origin: top;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+    transition: all 0.3s ease;
+    border: 1px solid var(--medium-gray);
+    border-top: none;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    box-shadow: var(--shadow-sm);
     max-height: 700px; /* 增大最大高度 */
-    border-left: 3px solid var(--primary-color);
-    opacity: 0.7;
+    opacity: 0.98;
+}
+
+.panel-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.05), transparent);
+    pointer-events: none;
 }
 
 .panel-content.collapsed {
@@ -288,15 +317,18 @@ header p {
     display: none !important;
 }
 
-/* 面板标题样式 */
+/* 面板标题样式 - 现代风格 */
 .panel-content h2 {
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     margin-bottom: 1.5rem;
     color: var(--primary-color);
     font-weight: 700;
     position: relative;
-    padding-bottom: 0.7rem;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    padding-bottom: 0.5rem;
+    text-shadow: none;
+    letter-spacing: 0.5px;
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+    display: inline-block;
 }
 
 .panel-content h2::after {
@@ -304,18 +336,19 @@ header p {
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 80px;
-    height: 4px;
-    background: linear-gradient(90deg, var(--primary-color), var(--accent-color), var(--warning-color));
-    border-radius: 3px;
-    box-shadow: 0 2px 8px rgba(255,64,129,0.3);
+    width: 60px;
+    height: 3px;
+    background: var(--primary-color);
+    border-radius: 2px;
 }
 
 .panel-content h3 {
     font-size: 1rem;
     margin: 1.2rem 0 0.8rem;
-    color: var(--dark-color);
-    font-weight: 500;
+    color: var(--secondary-color);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
 }
 
 /* 地图图层控制样式 */
@@ -502,22 +535,23 @@ footer p {
     margin: 0;
 }
 
-/* 地点信息显示区域样式 */
+/* 地点信息显示区域样式 - 现代风格 */
 .location-info {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(255, 64, 129, 0.8); /* 亮粉色带透明度 */
-    color: white;
-    padding: 8px;
-    border-radius: 15px 15px 0 0;
-    box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: var(--white-color);
+    padding: 12px;
+    box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.2);
     z-index: 1000;
     max-height: 25vh;
     overflow-y: auto;
     transition: all 0.3s ease;
     font-size: 0.85em;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    backdrop-filter: blur(10px);
 }
 
 /* 自定义滚动条样式 */
@@ -589,19 +623,38 @@ footer p {
     margin-bottom: 6px;
 }
 
+/* 地点名称和省份样式 - 现代风格 */
 #location-name {
-    font-size: 1.4em;
+    font-size: 1.5em;
     margin: 0;
     font-weight: 700;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     line-height: 1.2;
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+    letter-spacing: 0.5px;
+    position: relative;
+    display: inline-block;
+}
+
+#location-name::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 2px;
+    background: var(--accent-color);
+    border-radius: 2px;
 }
 
 #location-province {
     font-size: 0.9em;
-    margin: 2px 0 0 0;
+    margin: 5px 0 0 0;
     opacity: 0.9;
-    font-style: italic;
+    font-style: normal;
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+    letter-spacing: 0.3px;
 }
 
 .location-details {
@@ -710,14 +763,16 @@ footer p {
     opacity: 0.8;
 }
 
-/* 响应式布局 */
+/* 响应式布局 - 中国风适配 */
 @media (max-width: 1200px) {
     header h1 {
-        font-size: 1.3rem;
+        font-size: 1.6rem;
+        letter-spacing: 2px;
     }
     
     header p {
-        font-size: 0.7rem;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
     }
     
     /* 调整悬浮面板大小 */
@@ -737,6 +792,71 @@ footer p {
     .animation-control-container {
         width: 220px;
     }
+    
+    /* 中国风响应式调整 */
+    .panel-header h2,
+    .animation-header h3 {
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+    }
+}
+
+/* 中国风信息区块 */
+.info-section {
+    border-radius: 0 !important;
+    border: 1px solid rgba(212, 160, 23, 0.3) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.info-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background: var(--accent-color);
+}
+
+/* 中国风标题装饰 */
+.info-section h5 {
+    letter-spacing: 1px;
+    font-family: 'STKaiti', 'KaiTi', serif;
+    position: relative;
+    display: inline-block;
+}
+
+.info-section h5::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: var(--accent-color);
+}
+
+/* 中国风地图标记 */
+.leaflet-marker-icon {
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+    transition: var(--transition);
+}
+
+/* 中国风弹窗样式 */
+.leaflet-popup-content-wrapper {
+    border-radius: 0;
+    box-shadow: var(--shadow-lg);
+    border: 2px solid var(--accent-color);
+    background: var(--light-color);
+    background-image: var(--paper-texture);
+    opacity: 0.95;
+}
+
+.leaflet-popup-tip {
+    background: var(--primary-color);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--accent-color);
 }
 
 /* 响应式布局 */
@@ -840,13 +960,68 @@ footer p {
     filter: drop-shadow(0 2px 4px rgba(39,174,96,0.3));
 }
 
-/* 现代化表单元素 */
+/* 中国风表单元素 */
 input[type="radio"],
 input[type="checkbox"] {
     transition: var(--transition);
+    accent-color: var(--primary-color);
 }
 
-/* 模拟行程控制容器 */
+/* 中国风按钮样式 */
+.btn {
+    font-family: 'STKaiti', 'KaiTi', serif;
+    letter-spacing: 1px;
+    border-radius: 2px !important;
+    border: 2px solid transparent !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--chinese-pattern);
+    opacity: 0.1;
+    z-index: 0;
+}
+
+.btn span {
+    position: relative;
+    z-index: 1;
+}
+
+/* 中国风滚动条样式 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--light-gray);
+    border-radius: 0;
+    /* 中国风装饰 */
+    background-image: linear-gradient(45deg, var(--light-gray) 25%, transparent 25%, transparent 50%, var(--light-gray) 50%, var(--light-gray) 75%, transparent 75%, transparent);
+    background-size: 8px 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 0;
+    border: 1px solid var(--accent-color);
+    /* 中国风装饰 */
+    background-image: linear-gradient(45deg, transparent 25%, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.1) 50%, transparent 50%, transparent 75%, rgba(255,255,255,0.1) 75%, rgba(255,255,255,0.1));
+    background-size: 8px 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #9a2323;
+}
+
+/* 模拟行程控制容器 - 中国风竹简式 */
 .animation-control-container {
     position: absolute;
     top: 100px; /* 调整位置，确保不遮挡地图缩放控件 */
@@ -860,14 +1035,21 @@ input[type="checkbox"] {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(135deg, var(--primary-color), var(--accent-color), var(--warning-color));
-    color: white;
+    background: linear-gradient(135deg, var(--primary-color), #9a2323);
+    color: var(--white-color);
     padding: 10px 15px;
-    border-radius: 12px 12px 0 0;
     cursor: pointer;
-    box-shadow: 0 4px 20px rgba(255,64,129,0.3);
     transition: all 0.3s ease;
-    border-bottom: 3px solid var(--white-color);
+    /* 中国风边框装饰 */
+    border: 2px solid var(--accent-color);
+    border-bottom: none;
+    /* 竹简效果 */
+    box-shadow: 
+        3px 3px 0 rgba(0,0,0,0.2),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+    background-image: var(--chinese-pattern);
+    background-size: 80px;
+    background-blend-mode: overlay;
 }
 
 .animation-header:hover {
@@ -1186,5 +1368,391 @@ body.loaded #map::before {
     }
     50% {
         opacity: 1;
+    }
+}
+
+/* 中国风装饰元素 */
+.chinese-decoration {
+    position: fixed;
+    width: 100%;
+    height: 50px;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.top-decoration {
+    top: 0;
+}
+
+.bottom-decoration {
+    bottom: 0;
+    transform: rotate(180deg);
+}
+
+.cloud-pattern {
+    width: 100%;
+    height: 100%;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 100"><path d="M0,50 Q200,10 400,50 T800,50 T1200,50 L1200,100 L0,100 Z" fill="%23b22222" opacity="0.3"/></svg>');
+    background-repeat: repeat-x;
+    background-size: 300px 50px;
+}
+
+/* 中国风边框装饰 */
+.chinese-border {
+    display: inline-block;
+    padding: 5px 15px;
+    margin: 0 10px;
+    border: 2px solid var(--gold-color);
+    background-color: rgba(178, 34, 34, 0.1);
+    color: var(--gold-color);
+    font-family: 'Noto Serif SC', serif;
+    font-weight: bold;
+    box-shadow: 2px 2px 0 rgba(178, 34, 34, 0.5);
+}
+
+/* 中国风表单元素 */
+.chinese-label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--dark-red);
+    font-family: 'Noto Serif SC', serif;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.chinese-form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border: 2px solid var(--gold-color);
+    border-radius: 0;
+    background-color: rgba(255, 255, 240, 0.9);
+    color: var(--dark-red);
+    font-family: 'Noto Serif SC', serif;
+    transition: all 0.3s ease;
+}
+
+.chinese-form-control:focus {
+    outline: none;
+    border-color: var(--dark-red);
+    box-shadow: 0 0 5px rgba(178, 34, 34, 0.3);
+}
+
+.chinese-range-slider {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(178, 34, 34, 0.2);
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.chinese-range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--gold-color);
+    border: 2px solid var(--dark-red);
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.chinese-speed-value {
+    color: var(--dark-red);
+    font-family: 'Noto Serif SC', serif;
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+/* 中国风按钮 */
+.chinese-btn {
+    padding: 8px 16px;
+    margin: 0 5px;
+    border: 2px solid;
+    border-radius: 0;
+    background-color: transparent;
+    font-family: 'Noto Serif SC', serif;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.chinese-btn-primary {
+    color: var(--gold-color);
+    border-color: var(--gold-color);
+    background-color: rgba(178, 34, 34, 0.8);
+}
+
+.chinese-btn-primary:hover {
+    background-color: var(--dark-red);
+    box-shadow: 3px 3px 0 rgba(212, 160, 23, 0.5);
+}
+
+.chinese-btn-secondary {
+    color: var(--dark-red);
+    border-color: var(--dark-red);
+    background-color: rgba(212, 160, 23, 0.2);
+}
+
+.chinese-btn-secondary:hover {
+    background-color: rgba(212, 160, 23, 0.4);
+    box-shadow: 3px 3px 0 rgba(178, 34, 34, 0.3);
+}
+
+.chinese-toggle-button {
+    background-color: transparent;
+    border: none;
+    color: var(--gold-color);
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.chinese-toggle-button:hover {
+    color: var(--light-gold);
+    transform: scale(1.1);
+}
+
+.chinese-close-button {
+    background-color: transparent;
+    border: none;
+    color: var(--dark-red);
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Noto Serif SC', serif;
+}
+
+.chinese-close-button:hover {
+    color: var(--gold-color);
+    transform: scale(1.2);
+}
+
+/* 中国风进度条 */
+.chinese-progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: rgba(178, 34, 34, 0.2);
+    border: 1px solid var(--gold-color);
+    overflow: hidden;
+}
+
+.chinese-progress-fill {
+    height: 100%;
+    background-color: var(--dark-red);
+    transition: width 0.3s ease;
+    background-image: linear-gradient(45deg, rgba(255, 255, 240, 0.3) 25%, transparent 25%, transparent 50%, rgba(255, 255, 240, 0.3) 50%, rgba(255, 255, 240, 0.3) 75%, transparent 75%, transparent);
+    background-size: 20px 20px;
+}
+
+.chinese-status-text {
+    margin-top: 5px;
+    color: var(--dark-red);
+    font-family: 'Noto Serif SC', serif;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* 中国风面板和容器 */
+.chinese-panel-header {
+    background-color: var(--dark-red);
+    color: var(--gold-color);
+    border-bottom: 3px solid var(--gold-color);
+    padding: 10px 15px;
+    position: relative;
+    font-family: 'Noto Serif SC', serif;
+}
+
+.chinese-panel-header::before,
+.chinese-panel-header::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 10px;
+    height: 20px;
+    background-color: var(--gold-color);
+    transform: translateY(-50%);
+}
+
+.chinese-panel-header::before {
+    left: 0;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+.chinese-panel-header::after {
+    right: 0;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+
+.chinese-panel-content {
+    background-color: rgba(255, 255, 240, 0.9);
+    border: 2px solid var(--gold-color);
+    border-top: none;
+    padding: 15px;
+}
+
+.chinese-scroll-header {
+    background-color: var(--dark-red);
+    color: var(--gold-color);
+    border-bottom: 3px solid var(--gold-color);
+    padding: 8px 15px;
+    position: relative;
+    font-family: 'Noto Serif SC', serif;
+}
+
+.chinese-scroll-content {
+    background-color: rgba(255, 255, 240, 0.95);
+    border: 2px solid var(--gold-color);
+    border-top: none;
+    padding: 15px;
+    position: relative;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><rect width="20" height="20" fill="none"/><path d="M0,10 L20,10 M10,0 L10,20" stroke="rgba(178, 34, 34, 0.05)" stroke-width="1"/></svg>');
+}
+
+.chinese-scroll-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: linear-gradient(to bottom, rgba(178, 34, 34, 0.1), transparent);
+}
+
+.chinese-scroll-content::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: linear-gradient(to top, rgba(178, 34, 34, 0.1), transparent);
+}
+
+.chinese-bamboo-container {
+    background-color: rgba(255, 255, 240, 0.9);
+    border: 2px solid var(--gold-color);
+    border-top: none;
+    padding: 15px;
+    position: relative;
+    background-image: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 19px,
+        rgba(178, 34, 34, 0.1) 20px
+    );
+}
+
+/* 中国风信息区块 */
+.chinese-info-section {
+    margin-bottom: 20px;
+    padding: 10px 15px;
+    background-color: rgba(178, 34, 34, 0.05);
+    border-left: 4px solid var(--gold-color);
+    position: relative;
+}
+
+.chinese-section-title {
+    color: var(--dark-red);
+    font-family: 'Noto Serif SC', serif;
+    font-size: 18px;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid var(--gold-color);
+    display: inline-block;
+}
+
+.chinese-section-header {
+    color: var(--dark-red);
+    font-family: 'Noto Serif SC', serif;
+    font-size: 20px;
+    margin-top: 20px;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 3px solid var(--gold-color);
+    position: relative;
+}
+
+.chinese-section-header::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background-color: var(--dark-red);
+}
+
+.chinese-attractions-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.chinese-attractions-list li {
+    position: relative;
+    padding-left: 25px;
+    margin-bottom: 8px;
+    color: var(--dark-red);
+    font-family: 'Noto Serif SC', serif;
+}
+
+.chinese-attractions-list li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: var(--gold-color);
+    font-size: 20px;
+    line-height: 1;
+}
+
+/* 中国风动画控制 */
+.chinese-animation-buttons {
+    display: flex;
+    justify-content: center;
+    margin: 15px 0;
+    flex-wrap: wrap;
+}
+
+.chinese-animation-info {
+    margin-top: 15px;
+}
+
+/* 中国风标题装饰 */
+.header-scroll-decoration {
+    height: 15px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 20"><path d="M0,10 Q50,5 100,10 T200,10" stroke="%23d4a017" stroke-width="2" fill="none"/></svg>');
+    background-repeat: repeat-x;
+    background-size: 200px 20px;
+    opacity: 0.7;
+}
+
+.header-subtitle {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0;
+    flex-wrap: wrap;
+}
+
+/* 中国风响应式调整 */
+@media (max-width: 768px) {
+    .chinese-border {
+        padding: 3px 10px;
+        margin: 0 5px;
+        font-size: 14px;
+    }
+    
+    .chinese-btn {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+    
+    .chinese-panel-content,
+    .chinese-scroll-content,
+    .chinese-bamboo-container {
+        padding: 10px;
     }
 }
