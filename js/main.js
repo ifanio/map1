@@ -8,36 +8,58 @@ document.addEventListener('DOMContentLoaded', function() {
     // 添加页面加载完成的标识
     document.body.classList.add('loaded');
     
-    console.log('中国边境线地图加载完成');
+    console.log('中国边境线地图完成');
     
-    // 悬浮控制面板功能
-    const controlButton = document.getElementById('floating-control-button');
+    // 地图控制面板功能
     const controlPanel = document.getElementById('floating-control-panel');
-    const closeButton = document.getElementById('close-panel');
+    const panelHeader = document.querySelector('.panel-header');
+    const toggleControlButton = document.getElementById('toggle-control-panel');
+    const panelContent = document.getElementById('panel-content');
 
-    // 切换控制面板显示状态
+    // 切换控制面板折叠状态
     function toggleControlPanel() {
-        controlPanel.classList.toggle('active');
-    }
-
-    // 显示控制面板
-    function showControlPanel() {
-        controlPanel.classList.add('active');
-    }
-
-    // 隐藏控制面板
-    function hideControlPanel() {
-        controlPanel.classList.remove('active');
+        panelContent.classList.toggle('collapsed');
+        // 更新切换按钮的图标
+        if (panelContent.classList.contains('collapsed')) {
+            toggleControlButton.textContent = '▶';
+        } else {
+            toggleControlButton.textContent = '▼';
+        }
     }
 
     // 绑定事件监听器
-    if (controlButton) {
-        controlButton.addEventListener('click', toggleControlPanel);
+    if (panelHeader) {
+        panelHeader.addEventListener('click', toggleControlPanel);
     }
 
-    if (closeButton) {
-        closeButton.addEventListener('click', hideControlPanel);
+    if (toggleControlButton) {
+        toggleControlButton.addEventListener('click', (e) => {
+            e.stopPropagation(); // 阻止事件冒泡，避免触发头部的点击事件
+            toggleControlPanel();
+        });
     }
+    
+    // 独立模拟行程控制面板交互
+    const animationHeader = document.querySelector('.animation-header');
+    const toggleAnimationPanel = document.getElementById('toggle-animation-panel');
+    const animationControlPanel = document.getElementById('animation-control-panel');
+
+    function togglePanel() {
+        animationControlPanel.classList.toggle('collapsed');
+        // 更新切换按钮的图标
+        if (animationControlPanel.classList.contains('collapsed')) {
+            toggleAnimationPanel.textContent = '▶';
+        } else {
+            toggleAnimationPanel.textContent = '▼';
+        }
+    }
+
+    // 点击头部或切换按钮都可以切换面板
+    animationHeader.addEventListener('click', togglePanel);
+    toggleAnimationPanel.addEventListener('click', (e) => {
+        e.stopPropagation(); // 阻止事件冒泡，避免触发头部的点击事件
+        togglePanel();
+    })
 });
 
 // 页面可见性变化处理

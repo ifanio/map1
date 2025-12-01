@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>中国边境线地图 - G219、G331、G228国道</title>
-    <!-- 引入Leaflet地图库 -->
+    <!-- 外部资源 -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- 引入自定义样式 -->
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -19,19 +20,54 @@
     <div class="container">
         <div id="map"></div>
         
-        <!-- 悬浮控制按钮 -->
-        <div id="floating-control-button" class="floating-control-button">
-            <span class="control-icon">⚙️</span>
+        <!-- 独立的模拟行程控制 -->
+        <div id="animation-control-container" class="animation-control-container">
+            <div class="animation-header">
+                <h3>模拟行程</h3>
+                <button id="toggle-animation-panel" class="toggle-button">▼</button>
+            </div>
+            
+            <div id="animation-control-panel" class="animation-control-panel">
+                <div class="form-group">
+                    <label for="start-location">选择起点：</label>
+                    <select id="start-location" class="form-control">
+                        <!-- 起点列表将通过JavaScript动态生成 -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="direction-select">选择方向：</label>
+                    <select id="direction-select" class="form-control">
+                        <option value="clockwise">顺时针</option>
+                        <option value="counterclockwise">逆时针</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="animation-speed">速度：</label>
+                    <input type="range" id="animation-speed" min="1" max="10" value="1" class="range-slider">
+                    <span id="speed-value">1</span>
+                </div>
+                <div class="animation-buttons">
+                    <button id="start-animation" class="btn btn-primary">开始</button>
+                    <button id="pause-animation" class="btn btn-secondary" disabled>暂停</button>
+                    <button id="reset-animation" class="btn btn-secondary" disabled>重置</button>
+                </div>
+                <div class="animation-info">
+                    <div class="progress-bar">
+                        <div id="progress-fill" class="progress-fill"></div>
+                    </div>
+                    <div id="animation-status" class="status-text">准备就绪</div>
+                </div>
+            </div>
         </div>
         
         <!-- 悬浮控制面板 -->
         <div id="floating-control-panel" class="floating-control-panel">
             <div class="panel-header">
                 <h2>地图控制</h2>
-                <button id="close-panel" class="close-button">×</button>
+                <button id="toggle-control-panel" class="toggle-button">▼</button>
             </div>
             
-            <div class="panel-content">
+            <div id="panel-content" class="panel-content">
                 <div class="map-layer-controls">
                     <label>
                         <input type="radio" name="map-layer" id="standard-map">
@@ -67,13 +103,45 @@
         </div>
     </div>
     
-    <footer>
-        <p>数据来源：百度百科 | 地图展示：Leaflet.js</p>
-    </footer>
+    <!-- 地点信息显示区域 -->
+    <div id="location-info" class="location-info">
+        <div class="location-info-header">
+            <h3>📌 地点信息</h3>
+            <button id="close-info" class="close-button">&times;</button>
+        </div>
+        <div id="location-info-content" class="location-info-content">
+            <div class="location-basic-info">
+                <h4 id="location-name">选择起点开始行程</h4>
+                <p id="location-province"></p>
+            </div>
+            <div class="location-details">
+                <div class="info-section">
+                    <h5>🏞️ 风土人情</h5>
+                    <p id="location-culture"></p>
+                </div>
+                <div class="info-section">
+                    <h5>🍽️ 特色美食</h5>
+                    <p id="location-food"></p>
+                </div>
+                <div class="info-section">
+                    <h5>📸 旅游打卡点</h5>
+                    <ul id="location-attractions"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
     
-    <!-- 引入自定义JavaScript -->
+    <!-- JavaScript -->
     <script src="js/data.js"></script>
-    <script src="js/map.js"></script>
+        <script src="js/locationInfo.js"></script>
+        <script src="js/map.js"></script>
+        <script>
+            // 页面加载完成后初始化地点信息数据库
+            document.addEventListener('DOMContentLoaded', function() {
+                initLocationInfoDatabase();
+                console.log('地点信息功能初始化完成');
+            });
+        </script>
     <script src="js/main.js"></script>
 </body>
 </html>
