@@ -696,46 +696,71 @@ function lerp(start, end, t) {
     return start + (end - start) * t;
 }
 
-// 语音播报函数 - 播报地点详情信息
+// 语音播报函数 - 模仿专业媒体语言风格的地点特色播报
 function speakLocation(location) {
     // 添加防御性检查，确保location参数有效
     if ('speechSynthesis' in window && location && location.name) {
         // 获取地点详细信息
         const locationInfo = getLocationInfo(location.name);
+        const province = locationInfo.province || location.province || '';
         
         // 创建语音实例
         const speech = new SpeechSynthesisUtterance();
         
-        // 构建语音文本，包含更多地点详情信息
-        let speechText = `现在您经过的是${location.name}，位于${locationInfo.province || location.province || ''}。`;
-        
-        // 添加风土人情信息（简明扼要）
-        if (locationInfo.culture && locationInfo.culture !== '暂无详细信息') {
-            // 提取风土人情的核心信息，控制长度
-            let cultureInfo = locationInfo.culture;
-            // 如果文本太长，截取前50个字符
-            if (cultureInfo.length > 50) {
-                cultureInfo = cultureInfo.substring(0, 50) + '...';
+        // 专业媒体风格的语音模板
+        const speechTemplates = [
+            {
+                intro: `这里是${location.name}，${province}的一颗璀璨明珠。`,
+                culture: (info) => `在这片土地上，${extractKeyCulturePoint(info)}。`,
+                food: (info) => `说到这里的美食，${extractKeyFoodPoint(info)}。`,
+                attractions: (attractions) => `而${location.name}最令人心驰神往的，正是${formatAttractions(attractions)}等自然与人文景观的完美融合。`,
+                outro: `这片土地，承载着历史的厚重，也绽放着时代的活力。`
+            },
+            {
+                intro: `欢迎来到${location.name}，${province}的魅力之城。`,
+                culture: (info) => `这里的人们${extractKeyCulturePoint(info)}，形成了独特的地域文化。`,
+                food: (info) => `在味蕾的世界里，${extractKeyFoodPoint(info)}，每一口都是对这片土地最好的诠释。`,
+                attractions: (attractions) => `漫步${location.name}，${formatAttractions(attractions)}等景点如同一幅幅画卷，展现着这里的自然之美与人文之韵。`,
+                outro: `这里，是历史与现代的交融，是传统与创新的碰撞。`
+            },
+            {
+                intro: `现在，我们来到了${location.name}，${province}的独特存在。`,
+                culture: (info) => `独特的地理环境孕育了${extractKeyCulturePoint(info)}的文化特色。`,
+                food: (info) => `美食是了解一座城市的最好方式，${extractKeyFoodPoint(info)}，让人回味无穷。`,
+                attractions: (attractions) => `${location.name}的美，藏在${formatAttractions(attractions)}等每一个角落，等待着有心人的发现。`,
+                outro: `这是一片充满故事的土地，每一处风景都在诉说着属于它的传奇。`
             }
-            speechText += ` ${cultureInfo}`;
+        ];
+        
+        // 随机选择一个语音模板，增加变化性
+        const template = speechTemplates[Math.floor(Math.random() * speechTemplates.length)];
+        
+        // 构建语音文本
+        let speechText = template.intro;
+        
+        // 添加文化特色（精简且有感染力）
+        if (locationInfo.culture && locationInfo.culture !== '暂无详细信息') {
+            speechText += template.culture(locationInfo.culture);
         }
         
-        // 添加美食信息
+        // 添加美食特色（舌尖上的中国风格）
         if (locationInfo.food && locationInfo.food !== '暂无详细信息') {
-            speechText += ` 特色美食有${locationInfo.food.replace('特色美食有', '').replace('等，', '等。')}`;
+            speechText += template.food(locationInfo.food);
         }
         
-        // 添加主要旅游打卡点
+        // 添加景点特色（国家地理风格）
         if (Array.isArray(locationInfo.attractions) && locationInfo.attractions.length > 0) {
-            const mainAttractions = locationInfo.attractions.slice(0, 3).join('、'); // 最多播报3个景点
-            speechText += ` 主要景点有${mainAttractions}等。`;
+            speechText += template.attractions(locationInfo.attractions);
         }
+        
+        // 添加结束语
+        speechText += template.outro;
         
         speech.text = speechText;
         speech.lang = 'zh-CN'; // 设置为中文
         speech.volume = 1; // 音量 (0 to 1)
-        speech.rate = 1.6; // 适当调整语速，使更多信息能清晰传达
-        speech.pitch = 1; // 音调 (0 to 2)
+        speech.rate = 1.5; // 专业播报语速，清晰有力
+        speech.pitch = 1.1; // 略微提高音调，增加感染力
         
         // 选择更有感情的语音
         const voices = window.speechSynthesis.getVoices();
@@ -767,6 +792,67 @@ function speakLocation(location) {
         
         // 播放语音
         window.speechSynthesis.speak(speech);
+    }
+    
+    // 辅助函数：提取文化特色要点
+    function extractKeyCulturePoint(cultureInfo) {
+        // 从文化信息中提取核心要点
+        let keyPoint = cultureInfo;
+        
+        // 简化文化描述，提取最有特色的部分
+        if (keyPoint.includes('文化')) {
+            // 尝试提取包含文化的关键句
+            const sentences = keyPoint.split(/[。！？]/).filter(s => s.includes('文化'));
+            if (sentences.length > 0) {
+                keyPoint = sentences[0];
+            }
+        }
+        
+        // 控制长度，保持简洁有力
+        if (keyPoint.length > 60) {
+            keyPoint = keyPoint.substring(0, 60) + '...';
+        }
+        
+        return keyPoint;
+    }
+    
+    // 辅助函数：提取美食特色要点（舌尖上的中国风格）
+    function extractKeyFoodPoint(foodInfo) {
+        // 舌尖上的中国风格的美食描述
+        let foodPoint = foodInfo;
+        
+        // 清理文本，提取核心美食信息
+        foodPoint = foodPoint.replace('特色美食有', '');
+        foodPoint = foodPoint.replace('等，', '等');
+        
+        // 舌尖风格的表达方式
+        if (foodPoint.includes('、')) {
+            const foods = foodPoint.split('、');
+            if (foods.length > 1) {
+                // 重点突出前两种美食
+                foodPoint = `${foods[0]}和${foods[1]}最为出名，口感独特，风味醇厚`;
+            } else {
+                foodPoint = `${foods[0]}，味道鲜美，让人难忘`;
+            }
+        }
+        
+        return foodPoint;
+    }
+    
+    // 辅助函数：格式化景点列表
+    function formatAttractions(attractions) {
+        if (attractions.length === 0) return '';
+        
+        // 最多选择3个主要景点
+        const mainAttractions = attractions.slice(0, 3);
+        
+        if (mainAttractions.length === 1) {
+            return mainAttractions[0];
+        } else if (mainAttractions.length === 2) {
+            return `${mainAttractions[0]}和${mainAttractions[1]}`;
+        } else {
+            return `${mainAttractions[0]}、${mainAttractions[1]}以及${mainAttractions[2]}`;
+        }
     }
 }
 
