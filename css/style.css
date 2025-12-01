@@ -1,0 +1,622 @@
+/* 全局样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 现代化配色方案 */
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2c3e50;
+    --accent-color: #e74c3c;
+    --success-color: #27ae60;
+    --warning-color: #f39c12;
+    --light-color: #ecf0f1;
+    --dark-color: #2c3e50;
+    --white-color: #ffffff;
+    --light-gray: #f8f9fa;
+    --medium-gray: #e9ecef;
+    --dark-gray: #6c757d;
+    --border-radius: 12px;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.12);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.16);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+    font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+    line-height: 1.65;
+    color: var(--dark-color);
+    background-color: var(--light-gray);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--light-gray);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--medium-gray);
+    border-radius: 10px;
+    transition: var(--transition);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--dark-gray);
+}
+
+/* 头部样式 */
+header {
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    color: var(--white-color);
+    text-align: center;
+    padding: 2rem 1rem;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+}
+
+header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYtMi42ODYgNi02cy0yLjY4Ni02LTYtNmMtMy4zMTQgMC02IDIuNjg2LTYgNnMyLjY4NiA2IDYgNnptMCAzMGMzLjMxNCAwIDYtMi42ODYgNi02cy0yLjY4Ni02LTYtNmMtMy4zMTQgMC02IDIuNjg2LTYgNnMyLjY4NiA2IDYgNnptLTE4LTMwYzMuMzE0IDAgNi0yLjY4NiA2LTZzLTIuNjg2LTYtNi02Yy0zLjMxNCAwLTYgMi42ODYtNiA2czIuNjg2IDYgNiA2em0wIDMwYzMuMzE0IDAgNi0yLjY4NiA2LTZzLTIuNjg2LTYtNi02Yy0zLjMxNCAwLTYgMi42ODYtNiA2czIuNjg2IDYgNiA2em0xOCAwYzMuMzE0IDAgNi0yLjY4NiA2LTZzLTIuNjg2LTYtNi02Yy0zLjMxNCAwLTYgMi42ODYtNiA2czIuNjg2IDYgNiA2eiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIi8+PC9nPjwvc3ZnPg==');
+    opacity: 0.3;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+header p {
+    font-size: 1.1rem;
+    opacity: 0.95;
+    position: relative;
+    z-index: 1;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+/* 主容器样式 */
+.container {
+    position: relative;
+    height: calc(100vh - 200px); /* 调整高度，为头部和底部留出空间 */
+    background-color: var(--light-gray);
+    overflow: hidden;
+}
+
+/* 地图样式 */
+#map {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--border-radius);
+    margin: 0;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+}
+
+/* 悬浮控制按钮样式 */
+.floating-control-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border: none;
+    box-shadow: var(--shadow-lg);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    z-index: 1000;
+    transition: var(--transition);
+    color: var(--white-color);
+    overflow: hidden;
+}
+
+.floating-control-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: var(--transition);
+}
+
+.floating-control-button:hover {
+    transform: scale(1.1) rotate(45deg);
+    box-shadow: var(--shadow-lg);
+}
+
+.floating-control-button:hover::before {
+    left: 100%;
+}
+
+/* 悬浮控制面板样式 */
+.floating-control-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 320px;
+    height: 90%;
+    background: linear-gradient(135deg, var(--white-color), var(--light-gray));
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    opacity: 0;
+    transform: translateX(100%) scale(0.9);
+    transition: var(--transition);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(10px);
+}
+
+.floating-control-panel.active {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+}
+
+/* 面板头部样式 */
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: var(--white-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.panel-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYtMi42ODYgNi02cy0yLjY4Ni02LTYtNmMtMy4zMTQgMC02IDIuNjg2LTYgNnMyLjY4NiA2IDYgNnptMCAzMGMzLjMxNCAwIDYtMi42ODYgNi02cy0yLjY4Ni02LTYtNmMtMy4zMTQgMC02IDIuNjg2LTYgNnMyLjY4NiA2IDYgNnptLTE4LTMwYzMuMzE0IDAgNi0yLjY4NiA2LTZzLTIuNjg2LTYtNi02Yy0zLjMxNCAwLTYgMi42ODYtNiA2czIuNjg2IDYgNiA2em0wIDMwYzMuMzE0IDAgNi0yLjY4NiA2LTZzLTIuNjg2LTYtNi02Yy0zLjMxNCAwLTYgMi42ODYtNiA2czIuNjg2IDYgNiA2em0xOCAwYzMuMzE0IDAgNi0yLjY4NiA2LTZzLTIuNjg2LTYtNi02Yy0zLjMxNCAwLTYgMi42ODYtNiA2czIuNjg2IDYgNiA2eiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIi8+PC9nPjwvc3ZnPg==');
+    opacity: 0.3;
+}
+
+.panel-header h2 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* 关闭按钮样式 */
+.close-button {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--white-color);
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(10px);
+}
+
+.close-button:hover {
+    background: rgba(255,255,255,0.3);
+    transform: scale(1.1) rotate(90deg);
+}
+
+/* 面板内容样式 */
+.panel-content {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+    position: relative;
+}
+
+.panel-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--medium-gray), transparent);
+}
+
+/* 隐藏旧的控制面板样式 */
+.control-panel {
+    display: none !important;
+}
+
+/* 面板标题样式 */
+.panel-content h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    color: var(--secondary-color);
+    font-weight: 600;
+    position: relative;
+    padding-bottom: 0.75rem;
+}
+
+.panel-content h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    border-radius: 2px;
+}
+
+.panel-content h3 {
+    font-size: 1.1rem;
+    margin: 1.5rem 0 1rem;
+    color: var(--dark-color);
+    font-weight: 500;
+}
+
+/* 地图图层控制样式 */
+.map-layer-controls {
+    margin-bottom: 2rem;
+}
+
+.map-layer-controls label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    padding: 0.75rem 1rem;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    background-color: var(--light-gray);
+    border: 2px solid transparent;
+    font-weight: 500;
+}
+
+.map-layer-controls label:hover {
+    background-color: var(--medium-gray);
+    transform: translateX(5px);
+}
+
+.map-layer-controls input[type="radio"] {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    margin-right: 0.75rem;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+}
+
+/* 自定义单选按钮样式 */
+.map-layer-controls label::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--primary-color);
+    border-radius: 50%;
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.map-layer-controls label:hover::before {
+    opacity: 0.3;
+}
+
+/* 路线控制样式 */
+.route-controls {
+    margin-bottom: 2rem;
+}
+
+.route-controls label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    padding: 0.75rem 1rem;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    background-color: var(--light-gray);
+    border: 2px solid transparent;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+
+.route-controls label:hover {
+    background-color: var(--medium-gray);
+    transform: translateX(5px);
+}
+
+.route-controls input[type="checkbox"] {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    margin-right: 0.75rem;
+    cursor: pointer;
+    accent-color: var(--success-color);
+}
+
+/* 路线特定样式 */
+.route-controls label[for="g219"] {
+    border-left: 4px solid var(--accent-color);
+}
+
+.route-controls label[for="g331"] {
+    border-left: 4px solid var(--primary-color);
+}
+
+.route-controls label[for="g228"] {
+    border-left: 4px solid var(--success-color);
+}
+
+/* 地点列表样式 */
+.locations-list {
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: var(--white-color);
+    border-radius: var(--border-radius);
+    padding: 0.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.location-item {
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    background-color: var(--light-gray);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.95rem;
+    font-weight: 500;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.location-item:last-child {
+    margin-bottom: 0;
+}
+
+.location-item:hover {
+    background-color: #e3f2fd;
+    transform: translateX(5px) translateY(-1px);
+    box-shadow: var(--shadow-sm);
+    border-color: var(--primary-color);
+}
+
+.location-item.active {
+    background-color: #e3f2fd;
+    border-left: 4px solid var(--primary-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.location-item::before {
+    content: '📍';
+    margin-right: 0.5rem;
+    font-size: 1rem;
+}
+
+/* 底部样式 */
+footer {
+    background: linear-gradient(135deg, var(--secondary-color), var(--dark-color));
+    color: var(--white-color);
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 0.95rem;
+    opacity: 0.95;
+    position: relative;
+    overflow: hidden;
+}
+
+footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYtMi42ODYgNi02cy0yLjY4Ni02LTYtNmMtMy4zMTQgMC02IDIuNjg2LTYgNnMyLjY4NiA2IDYgNnptMCAzMGMzLjMxNCAwIDYtMi42ODYgNi02cy0yLjY4Ni02LTYtNmMtMy4zMTQgMC02IDIuNjg2LTYgNnMyLjY4NiA2IDYgNnptLTE4LTMwYzMuMzE0IDAgNi0yLjY4NiA2LTZzLTIuNjg2LTYtNi02Yy0zLjMxNCAwLTYgMi42ODYtNiA2czIuNjg2IDYgNiA2em0wIDMwYzMuMzE0IDAgNi0yLjY4NiA2LTZzLTIuNjg2LTYtNi02Yy0zLjMxNCAwLTYgMi42ODYtNiA2czIuNjg2IDYgNiA2em0xOCAwYzMuMzE0IDAgNi0yLjY4NiA2LTZzLTIuNjg2LTYtNi02Yy0zLjMxNCAwLTYgMi42ODYtNiA2czIuNjg2IDYgNiA2eiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIi8+PC9nPjwvc3ZnPg==');
+    opacity: 0.3;
+}
+
+footer p {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    /* 调整头部样式 */
+    header h1 {
+        font-size: 2rem;
+    }
+    
+    header p {
+        font-size: 1rem;
+    }
+    
+    /* 调整容器高度 */
+    .container {
+        height: calc(100vh - 180px);
+    }
+    
+    /* 调整悬浮面板大小 */
+    .floating-control-panel {
+        width: 90%;
+        max-width: 300px;
+        height: 85%;
+    }
+    
+    /* 调整按钮大小 */
+    .floating-control-button {
+        width: 50px;
+        height: 50px;
+        font-size: 18px;
+    }
+}
+
+/* 平板设备优化 */
+@media (max-width: 1024px) {
+    .container {
+        height: calc(100vh - 190px);
+    }
+}
+
+/* 地图标记样式 */
+.marker-label {
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+    background-color: var(--white-color);
+    padding: 2px 6px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+    text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+}
+
+/* 自定义图标样式 */
+.custom-div-icon div {
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: var(--white-color);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* 现代化地图标记 */
+.leaflet-marker-icon {
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    transition: var(--transition);
+}
+
+.leaflet-marker-icon:hover {
+    transform: scale(1.1);
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+}
+
+/* 现代化弹窗样式 */
+.leaflet-popup-content-wrapper {
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    border: none;
+    background: linear-gradient(135deg, var(--white-color), var(--light-gray));
+}
+
+.leaflet-popup-content {
+    margin: 1rem;
+    font-family: inherit;
+}
+
+.leaflet-popup-tip {
+    background: var(--light-gray);
+    box-shadow: var(--shadow-sm);
+}
+
+/* 路线样式增强 */
+.route-g219 {
+    color: var(--accent-color) !important;
+    border-color: var(--accent-color) !important;
+    filter: drop-shadow(0 2px 4px rgba(231,76,60,0.3));
+}
+
+.route-g331 {
+    color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    filter: drop-shadow(0 2px 4px rgba(52,152,219,0.3));
+}
+
+.route-g228 {
+    color: var(--success-color) !important;
+    border-color: var(--success-color) !important;
+    filter: drop-shadow(0 2px 4px rgba(39,174,96,0.3));
+}
+
+/* 现代化表单元素 */
+input[type="radio"],
+input[type="checkbox"] {
+    transition: var(--transition);
+}
+
+/* 页面加载动画 */
+body {
+    opacity: 0;
+    animation: fadeIn 0.5s ease-in forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* 地图加载动画 */
+#map {
+    position: relative;
+}
+
+#map::before {
+    content: '加载地图中...';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255,255,255,0.8);
+    padding: 1rem 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    color: var(--secondary-color);
+    font-weight: 500;
+    z-index: 999;
+    opacity: 0;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+}
