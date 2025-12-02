@@ -333,15 +333,22 @@ function bindMapLayerControls() {
 
 // 生成所有地点的合并列表
 function generateAllLocationsList() {
-    // 合并所有路线的地点
-    animationState.allLocations = [
-        ...G219Locations.map(loc => ({ ...loc, route: 'g219' })),
-        ...G331Locations.map(loc => ({ ...loc, route: 'g331' })),
-        ...G228Locations.map(loc => ({ ...loc, route: 'g228' }))
-    ];
+    // 按照指定方向顺序合并所有路线的地点
+    // G219: 东兴向喀纳斯方向（反转G219Locations数组）
+    const g219Reversed = [...G219Locations].reverse().map(loc => ({ ...loc, route: 'g219' }));
     
-    // 按名称排序
-    animationState.allLocations.sort((a, b) => a.name.localeCompare(b.name));
+    // G331: 阿勒泰向丹东方向（反转G331Locations数组）
+    const g331Reversed = [...G331Locations].reverse().map(loc => ({ ...loc, route: 'g331' }));
+    
+    // G228: 丹东向东兴方向（保持原顺序）
+    const g228Original = G228Locations.map(loc => ({ ...loc, route: 'g228' }));
+    
+    // 合并所有路线，按照指定顺序排列
+    animationState.allLocations = [
+        ...g219Reversed,
+        ...g331Reversed,
+        ...g228Original
+    ];
 }
 
 // 生成起点下拉列表
@@ -499,15 +506,20 @@ function getCurrentRouteData() {
                 const g331Reversed = [...G331Locations].reverse(); // G331顺时针需要反转
                 const heiheIndex = g331Reversed.findIndex(loc => loc.name === '阿黑吐别克口岸');
                 if (heiheIndex !== -1) {
-                    return g331Reversed.slice(heiheIndex - 1); // 包含喀纳斯和阿黑吐别克口岸之间的连接
+                    // 从阿黑吐别克口岸开始继续G331路线，然后连接到G228
+                    const g331Route = g331Reversed.slice(heiheIndex);
+                    const g228Route = G228Locations.slice(1); // 跳过G228丹东重复点
+                    return [...g331Route, ...g228Route];
                 }
             } else {
-                // 先走完G219到喀纳斯，再连接G331阿黑吐别克口岸继续
+                // 先走完G219到喀纳斯，再连接G331阿黑吐别克口岸继续，然后连接到G228
                 const g219Remaining = fullRouteData.slice(startIndex);
                 const g331Reversed = [...G331Locations].reverse(); // G331顺时针需要反转
                 const heiheIndex = g331Reversed.findIndex(loc => loc.name === '阿黑吐别克口岸');
                 if (heiheIndex !== -1) {
-                    return [...g219Remaining, ...g331Reversed.slice(heiheIndex)]; // 从阿黑吐别克口岸开始继续G331路线
+                    const g331Route = g331Reversed.slice(heiheIndex);
+                    const g228Route = G228Locations.slice(1); // 跳过G228丹东重复点
+                    return [...g219Remaining, ...g331Route, ...g228Route];
                 }
             }
         } else if (startLocation.route === 'g331') {
@@ -739,13 +751,13 @@ function speakLocation(location) {
         speech.lang = 'zh-CN'; // 设置为中文
         speech.volume = 1; // 音量 (0 to 1)
         
-        // 不同的语音配置选项（语速、音调）
+        // 不同的语音配置选项（语速、音调）- 提高语速范围
         const voiceConfigs = [
-            { rate: 1.4, pitch: 1.1 }, // 较慢，音调较高
-            { rate: 1.6, pitch: 1.0 }, // 中等，自然音调
-            { rate: 1.8, pitch: 0.9 }, // 较快，音调较低
-            { rate: 1.5, pitch: 1.2 }, // 中等偏慢，音调偏高
-            { rate: 1.7, pitch: 0.95 }  // 中等偏快，音调偏低
+            { rate: 1.8, pitch: 1.1 }, // 较快，音调较高
+            { rate: 2.0, pitch: 1.0 }, // 快速，自然音调
+            { rate: 2.2, pitch: 0.9 }, // 很快，音调较低
+            { rate: 1.9, pitch: 1.2 }, // 较快偏快，音调偏高
+            { rate: 2.1, pitch: 0.95 }  // 快速，音调偏低
         ];
         
         // 随机选择一个语音配置
@@ -789,8 +801,8 @@ function speakLocation(location) {
         speech.onend = function() {
             // 语音播放完成后，继续动画
             animationState.isRunning = true;
-            // 重置当前段起始时间，让动画从当前索引位置的下一段开始
-            animationState.currentSegmentStartTime = null;
+            // 不要重置当前段起始时间，保持连续性，避免地图跳动
+            // animationState.currentSegmentStartTime = null;
             animationState.animationId = requestAnimationFrame(animationLoop);
             
             // 移除视觉反馈
