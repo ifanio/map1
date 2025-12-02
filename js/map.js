@@ -737,8 +737,20 @@ function speakLocation(location) {
         speech.text = speechText;
         speech.lang = 'zh-CN'; // 设置为中文
         speech.volume = 1; // 音量 (0 to 1)
-        speech.rate = 1.6; // 加快语速，更加简洁
-        speech.pitch = 1.0; // 保持自然音调
+        
+        // 不同的语音配置选项（语速、音调）
+        const voiceConfigs = [
+            { rate: 1.4, pitch: 1.1 }, // 较慢，音调较高
+            { rate: 1.6, pitch: 1.0 }, // 中等，自然音调
+            { rate: 1.8, pitch: 0.9 }, // 较快，音调较低
+            { rate: 1.5, pitch: 1.2 }, // 中等偏慢，音调偏高
+            { rate: 1.7, pitch: 0.95 }  // 中等偏快，音调偏低
+        ];
+        
+        // 随机选择一个语音配置
+        const randomConfig = voiceConfigs[Math.floor(Math.random() * voiceConfigs.length)];
+        speech.rate = randomConfig.rate;
+        speech.pitch = randomConfig.pitch;
         
         // 选择合适的语音
         const voices = window.speechSynthesis.getVoices();
@@ -749,21 +761,49 @@ function speakLocation(location) {
         );
         
         if (preferredVoices.length > 0) {
-            // 选择第一个找到的偏好语音
-            speech.voice = preferredVoices[0];
+            // 随机选择一个偏好语音，而不是总是选择第一个
+            const randomVoiceIndex = Math.floor(Math.random() * preferredVoices.length);
+            speech.voice = preferredVoices[randomVoiceIndex];
         } else {
             // 如果没有找到偏好语音，尝试选择任何中文语音
             const chineseVoices = voices.filter(voice => voice.lang === 'zh-CN');
             if (chineseVoices.length > 0) {
-                speech.voice = chineseVoices[0];
+                // 随机选择一个中文语音
+                const randomVoiceIndex = Math.floor(Math.random() * chineseVoices.length);
+                speech.voice = chineseVoices[randomVoiceIndex];
             }
         }
+        
+        // 语音开始事件 - 添加视觉反馈
+        speech.onstart = function() {
+            // 在语音开始播放时，给当前地点标记添加视觉反馈
+            const currentMarker = findMarkerByLocation(location);
+            if (currentMarker) {
+                // 添加闪烁效果
+                currentMarker.getElement().style.animation = 'pulse 0.5s ease-in-out 3';
+            }
+        };
         
         // 语音结束事件 - 继续动画
         speech.onend = function() {
             // 语音播放完成后，继续动画
             animationState.isRunning = true;
             // 重置当前段起始时间，让动画从当前索引位置的下一段开始
+            animationState.currentSegmentStartTime = null;
+            animationState.animationId = requestAnimationFrame(animationLoop);
+            
+            // 移除视觉反馈
+            const currentMarker = findMarkerByLocation(location);
+            if (currentMarker) {
+                currentMarker.getElement().style.animation = '';
+            }
+        };
+        
+        // 语音错误事件
+        speech.onerror = function(event) {
+            console.warn('语音播报错误:', event.error);
+            // 即使语音播报失败，也要继续动画
+            animationState.isRunning = true;
             animationState.currentSegmentStartTime = null;
             animationState.animationId = requestAnimationFrame(animationLoop);
         };
@@ -793,6 +833,27 @@ function speakLocation(location) {
         
         return keyPoint;
     }
+}
+
+// 辅助函数：根据地点信息查找对应的标记点
+function findMarkerByLocation(location) {
+    if (!location || !location.lat || !location.lng) return null;
+    
+    let foundMarker = null;
+    
+    // 遍历所有标记点，找到匹配的标记
+    markersLayerGroup.eachLayer(function(layer) {
+        if (layer instanceof L.Marker) {
+            const markerLatLng = layer.getLatLng();
+            // 比较坐标是否匹配（允许小的误差）
+            if (Math.abs(markerLatLng.lat - location.lat) < 0.001 && 
+                Math.abs(markerLatLng.lng - location.lng) < 0.001) {
+                foundMarker = layer;
+            }
+        }
+    });
+    
+    return foundMarker;
 }
 
 // 动画循环

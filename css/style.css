@@ -1744,3 +1744,72 @@ body.loaded #map::before {
         padding: 10px;
     }
 }
+
+/* 语音播报动画样式 */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7);
+    }
+    50% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 10px rgba(52, 152, 219, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(52, 152, 219, 0);
+    }
+}
+
+/* 语音播报状态指示器 */
+.voice-status-indicator {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(52, 152, 219, 0.9);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    animation: voiceStatusPulse 2s infinite;
+}
+
+@keyframes voiceStatusPulse {
+    0%, 100% {
+        background: rgba(52, 152, 219, 0.9);
+    }
+    50% {
+        background: rgba(231, 76, 60, 0.9);
+    }
+}
+
+/* 语音配置显示 */
+.voice-config-display {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(44, 62, 80, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    max-width: 200px;
+}
+
+.voice-config-item {
+    margin: 2px 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.voice-config-label {
+    opacity: 0.8;
+}
+
+.voice-config-value {
+    font-weight: bold;
+}
