@@ -565,12 +565,12 @@ function createVehicleMarker() {
     
     const startPoint = routeData[0];
     
-    // 创建中国风车辆图标 - 古代马车样式
+    // 创建中国风车辆图标 - 现代汽车样式
     const vehicleIcon = L.divIcon({
         className: 'vehicle-icon',
-        html: '<div style="font-size: 24px; color: #b22222; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🚂</div>',
-        iconSize: [50, 50],
-        iconAnchor: [25, 25],
+        html: '<div style="font-size: 36px; color: #b22222; text-shadow: 2px 2px 6px rgba(0,0,0,0.4);">🚗</div>',
+        iconSize: [60, 60],
+        iconAnchor: [30, 30],
         className: 'chinese-vehicle-icon'
     });
     
