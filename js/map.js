@@ -412,13 +412,8 @@ function initRouteAnimationControls() {
         });
     }
     
-    // 速度控制事件
-    if (speedSlider && speedValue) {
-        speedSlider.addEventListener('input', function() {
-            animationState.speed = parseInt(this.value);
-            speedValue.textContent = this.value;
-        });
-    }
+    // 速度固定为默认值1
+    animationState.speed = 1;
     
     // 开始按钮事件
     if (startBtn) {
