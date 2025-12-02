@@ -29,7 +29,8 @@ var animationState = {
     vehicleMarker: null,
     visitedPoints: [],
     trailLine: null,
-    allLocations: [] // 所有地点的合并列表
+    allLocations: [], // 所有地点的合并列表
+    dayCounter: 1 // 天数计数器，从第1天开始
 };
 
 // 初始化地图
@@ -707,18 +708,18 @@ function speakLocation(location) {
         // 创建语音实例
         const speech = new SpeechSynthesisUtterance();
         
-        // 只包含地点和风土人情的语音模板
+        // 使用天数跟踪的语音模板
         const speechTemplates = [
             {
-                intro: `这里是${location.name}，${province}。`,
+                intro: `第${animationState.dayCounter}天，到达${location.name}，${province}。`,
                 culture: (info) => `${extractKeyCulturePoint(info)}。`
             },
             {
-                intro: `现在到达${location.name}，${province}。`,
+                intro: `第${animationState.dayCounter}天，我们来到${location.name}，${province}。`,
                 culture: (info) => `${extractKeyCulturePoint(info)}。`
             },
             {
-                intro: `${location.name}，${province}。`,
+                intro: `第${animationState.dayCounter}天，抵达${location.name}，${province}。`,
                 culture: (info) => `${extractKeyCulturePoint(info)}。`
             }
         ];
@@ -891,6 +892,9 @@ function animationLoop(timestamp) {
         
         // 确保新索引在有效范围内
         if (animationState.currentIndex >= 0 && animationState.currentIndex < routeData.length) {
+            // 每到一个新地点，天数加1
+            animationState.dayCounter++;
+            
             // 语音播报当前位置
             const currentPoint = routeData[animationState.currentIndex];
             if (currentPoint && currentPoint.name) {
@@ -946,6 +950,7 @@ function startAnimation() {
     animationState.currentSegmentStartTime = null;
     animationState.isRunning = true;
     animationState.isPaused = false;
+    animationState.dayCounter = 1; // 重置天数计数器
     
     // 初始化车辆和轨迹
     createVehicleMarker();
@@ -995,6 +1000,7 @@ function resetAnimation() {
     animationState.startTime = 0;
     animationState.pausedTime = 0;
     animationState.currentSegmentStartTime = null;
+    animationState.dayCounter = 1; // 重置天数计数器
     
     // 更新UI
     updateUIState();
