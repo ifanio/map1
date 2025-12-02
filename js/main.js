@@ -12,6 +12,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('中国边境线地图完成');
     
+    // 地点信息面板关闭按钮功能
+    const closeInfoButton = document.getElementById('close-info');
+    const locationInfoPanel = document.getElementById('location-info');
+    
+    if (closeInfoButton && locationInfoPanel) {
+        closeInfoButton.addEventListener('click', function() {
+            locationInfoPanel.classList.add('hidden');
+        });
+    }
+    
     // 地图控制面板功能
     const controlPanel = document.getElementById('floating-control-panel');
     const panelHeader = document.querySelector('.panel-header');

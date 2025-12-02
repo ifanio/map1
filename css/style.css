@@ -272,7 +272,7 @@ header p {
     padding: 15px;
     overflow-y: auto; /* 允许内容垂直滚动 */
     position: relative;
-    background: var(--light-color);
+    background-color: rgba(255, 255, 255, 0.5) !important;
     transform-origin: top;
     transition: all 0.3s ease;
     border: 1px solid var(--medium-gray);
@@ -280,7 +280,6 @@ header p {
     border-radius: 0 0 var(--border-radius) var(--border-radius);
     box-shadow: var(--shadow-sm);
     max-height: 700px; /* 增大最大高度 */
-    opacity: 0.98;
 }
 
 .panel-content::before {
@@ -298,17 +297,6 @@ header p {
     max-height: 0;
     padding: 0;
     opacity: 0;
-    pointer-events: none;
-}
-
-.panel-content::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 10px;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.1), transparent);
     pointer-events: none;
 }
 
