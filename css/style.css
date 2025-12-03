@@ -56,6 +56,17 @@ html, body {
     text-shadow: none;
 }
 
+/* h4标题样式 */
+h4 {
+    font-size: 1.8em;
+    font-weight: 700;
+    margin: 0.8rem 0;
+    line-height: 1.2;
+    color: white;
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
 /* 滚动条美化 */
 ::-webkit-scrollbar {
     width: 8px;

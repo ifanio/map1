@@ -90,11 +90,11 @@ function initMap() {
 
 // 初始化路线
 function initRoutes() {
-    // G219国道路线 - 现代蓝
+    // G219国道路线 - 橙色
     g219Layer = L.polyline(
         G219Locations.map(loc => [loc.lat, loc.lng]),
         { 
-            color: '#3498db', // 现代蓝
+            color: '#ff8c00', // 橙色
             weight: 6, 
             opacity: 0.9, 
             name: 'G219',
@@ -103,11 +103,11 @@ function initRoutes() {
         }
     ).addTo(map);
     
-    // G331国道路线 - 深蓝灰
+    // G331国道路线 - 绿色
     g331Layer = L.polyline(
         G331Locations.map(loc => [loc.lat, loc.lng]),
         { 
-            color: '#2c3e50', // 深蓝灰
+            color: '#2ecc71', // 绿色
             weight: 6, 
             opacity: 0.9, 
             name: 'G331',
@@ -116,11 +116,11 @@ function initRoutes() {
         }
     ).addTo(map);
     
-    // G228国道路线 - 红色
+    // G228国道路线 - 蓝色
     g228Layer = L.polyline(
         G228Locations.map(loc => [loc.lat, loc.lng]),
         { 
-            color: '#e74c3c', // 红色
+            color: '#3498db', // 蓝色
             weight: 6, 
             opacity: 0.9, 
             name: 'G228',
@@ -137,17 +137,17 @@ function initMarkers() {
     
     // 添加G219国道标记点
     if (document.getElementById('g219').checked) {
-        addMarkers(G219Locations, '#3498db');
+        addMarkers(G219Locations, '#ff8c00');
     }
     
     // 添加G331国道标记点
     if (document.getElementById('g331').checked) {
-        addMarkers(G331Locations, '#2c3e50');
+        addMarkers(G331Locations, '#2ecc71');
     }
     
     // 添加G228国道标记点
     if (document.getElementById('g228').checked) {
-        addMarkers(G228Locations, '#e74c3c');
+        addMarkers(G228Locations, '#3498db');
     }
 }
 
@@ -248,9 +248,9 @@ function generateLocationsList() {
     
     // 创建按路线分类的地点列表
     const routes = [
-        { id: 'g219', name: 'G219 喀纳斯-东兴', color: '#b22222', locations: G219Locations },
-        { id: 'g331', name: 'G331 丹东-阿勒泰', color: '#4a6fa5', locations: G331Locations },
-        { id: 'g228', name: 'G228 丹东-东兴', color: '#d4a017', locations: G228Locations }
+        { id: 'g219', name: 'G219 喀纳斯-东兴', color: '#ff8c00', locations: G219Locations },
+        { id: 'g331', name: 'G331 丹东-阿勒泰', color: '#2ecc71', locations: G331Locations },
+        { id: 'g228', name: 'G228 丹东-东兴', color: '#3498db', locations: G228Locations }
     ];
     
     routes.forEach(route => {
@@ -616,9 +616,9 @@ function createVehicleMarker() {
     // 添加中国风车辆弹出信息
     animationState.vehicleMarker.bindPopup(`
         <div style="text-align: center; font-family: 'SimSun', 'STSong', '宋体', serif; background-color: #f8f0e3; border: 1px solid #d4a017; border-radius: 4px; padding: 10px; box-shadow: 3px 3px 6px rgba(0,0,0,0.2);">
-            <div style="font-size: 16px; font-weight: bold; color: #b22222; margin-bottom: 5px;">🛤️ 行程模拟</div>
-            <div style="margin-bottom: 3px;">当前位置: <span style="color: #4a6fa5;">${startPoint.name}</span></div>
-            <div style="color: #4a6fa5;">${startPoint.province}</div>
+            <div style="font-size: 16px; font-weight: bold; color: #b22222; margin-bottom: 5px;">🚗 ${startPoint.name}</div>
+            <div style="margin-bottom: 3px; color: black;">${startPoint.province}</div>
+            <div style="color: black;">进度: 1/${animationState.totalPoints}</div>
         </div>
     `);
 }
@@ -656,10 +656,9 @@ function updateVehiclePosition(currentLat, currentLng, currentPoint) {
         // 更新车辆弹出信息
         animationState.vehicleMarker.setPopupContent(`
             <div style="text-align: center;">
-                <h4>🚗 模拟车辆</h4>
-                <p>当前位置: ${currentPoint.name}</p>
-                <p>${currentPoint.province}</p>
-                <p>进度: ${animationState.currentIndex + 1}/${animationState.totalPoints}</p>
+                <h4 style="color: #b22222; margin-bottom: 5px;">🚗 ${currentPoint.name}</h4>
+                <p style="color: black; margin-bottom: 3px;">${currentPoint.province}</p>
+                <p style="color: black;">进度: ${animationState.currentIndex + 1}/${animationState.totalPoints}</p>
             </div>
         `);
         
@@ -941,10 +940,9 @@ function animationLoop(timestamp) {
                 if (animationState.vehicleMarker) {
                     animationState.vehicleMarker.setPopupContent(`
                         <div style="text-align: center;">
-                            <h4>🚗 模拟车辆</h4>
-                            <p>当前位置: ${currentPoint.name}</p>
-                            <p>${currentPoint.province}</p>
-                            <p>进度: ${animationState.currentIndex + 1}/${animationState.totalPoints}</p>
+                            <h4 style="color: #b22222; margin-bottom: 5px;">🚗 ${currentPoint.name}</h4>
+                            <p style="color: black; margin-bottom: 3px;">${currentPoint.province}</p>
+                            <p style="color: black;">进度: ${animationState.currentIndex + 1}/${animationState.totalPoints}</p>
                         </div>
                     `);
                 }
@@ -1015,18 +1013,19 @@ function startAnimation() {
     });
     
     // 立即播报第一个地点的语音
-    if (currentPoint && currentPoint.name) {
-        // 更新车辆弹出窗口内容
-        if (animationState.vehicleMarker) {
-            animationState.vehicleMarker.setPopupContent(`
-                <div style="text-align: center;">
-                    <h4>🚗 模拟车辆</h4>
-                    <p>当前位置: ${currentPoint.name}</p>
-                    <p>${currentPoint.province}</p>
-                    <p>进度: ${animationState.currentIndex + 1}/${animationState.totalPoints}</p>
-                </div>
-            `);
-        }
+        if (currentPoint && currentPoint.name) {
+            // 更新车辆弹出窗口内容
+            if (animationState.vehicleMarker) {
+                animationState.vehicleMarker.setPopupContent(`
+                    <div style="text-align: center;">
+                        <h4 style="color: #b22222; margin-bottom: 5px;">🚗 ${currentPoint.name}</h4>
+                        <p style="color: black; margin-bottom: 3px;">${currentPoint.province}</p>
+                        <p style="color: black;">进度: ${animationState.currentIndex + 1}/${animationState.totalPoints}</p>
+                    </div>
+                `);
+                // 确保弹窗打开显示
+                animationState.vehicleMarker.openPopup();
+            }
         
         // 暂停动画，等待语音播报完成
         animationState.isRunning = false;
