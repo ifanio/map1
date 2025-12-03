@@ -178,6 +178,31 @@ function addMarkers(locations, color) {
             </div>
         `);
         
+        // 添加点击事件，更新地点详情面板
+        marker.on('click', function() {
+            // 更新地点详情面板
+            if (typeof updateLocationInfoDisplay === 'function') {
+                updateLocationInfoDisplay(loc.name);
+            }
+            
+            // 移除其他活跃状态
+            document.querySelectorAll('.location-item.active').forEach(item => {
+                item.classList.remove('active');
+                item.style.backgroundColor = '#f8f0e3';
+                item.style.borderColor = '#e0d0c0';
+            });
+            
+            // 设置对应的地点列表项为活跃状态
+            const locationItems = document.querySelectorAll('.location-item');
+            locationItems.forEach(item => {
+                if (item.textContent.includes(loc.name)) {
+                    item.classList.add('active');
+                    item.style.backgroundColor = '#e0d0c0';
+                    item.style.borderColor = color;
+                }
+            });
+        });
+        
         // 添加到图层组
         marker.addTo(markersLayerGroup);
     });
@@ -912,6 +937,18 @@ function animationLoop(timestamp) {
             // 语音播报当前位置
             const currentPoint = routeData[animationState.currentIndex];
             if (currentPoint && currentPoint.name) {
+                // 立即更新车辆弹出窗口内容，确保语音播报开始时数据已更新
+                if (animationState.vehicleMarker) {
+                    animationState.vehicleMarker.setPopupContent(`
+                        <div style="text-align: center;">
+                            <h4>🚗 模拟车辆</h4>
+                            <p>当前位置: ${currentPoint.name}</p>
+                            <p>${currentPoint.province}</p>
+                            <p>进度: ${animationState.currentIndex + 1}/${animationState.totalPoints}</p>
+                        </div>
+                    `);
+                }
+                
                 speakLocation(currentPoint);
                 // 更新地点信息显示
                 updateLocationInfoDisplay(currentPoint.name);
