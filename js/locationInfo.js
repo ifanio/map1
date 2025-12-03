@@ -1,3 +1,103 @@
+// 地点海拔信息数据库
+const locationAltitudeData = {
+    // G219国道海拔信息
+    '喀纳斯': 1374,
+    '吉木乃': 980,
+    '和布克赛尔': 1280,
+    '乌什县': 1450,
+    '阿克苏': 1100,
+    '叶城': 1760,
+    '萨嘎县': 4500,
+    '康马县': 4300,
+    '墨脱': 1200,
+    '察隅': 2327,
+    '丙中洛': 1750,
+    '六库': 800,
+    '泸水': 820,
+    '腾冲': 1640,
+    '临沧': 1500,
+    '永德县': 1600,
+    '镇康县': 1100,
+    '沧源县': 1270,
+    '西盟县': 1900,
+    '孟连': 950,
+    '澜沧': 1050,
+    '景洪': 552,
+    
+    // G331国道海拔信息
+    '漠河': 433,
+    '呼玛县': 300,
+    '黑河': 166,
+    '逊克县': 200,
+    '嘉荫县': 150,
+    '萝北县': 80,
+    '抚远': 40,
+    '饶河县': 60,
+    '虎林': 100,
+    '密山': 150,
+    '绥芬河': 500,
+    '珲春': 30,
+    '图们': 50,
+    '龙井': 200,
+    '和龙': 450,
+    '白山': 500,
+    '通化': 400,
+    '桓仁县': 300,
+    '宽甸县': 200,
+    '丹东': 15,
+    
+    // G228国道海拔信息
+    '丹东': 15,
+    '大连': 0,
+    '营口': 3,
+    '盘锦': 0,
+    '锦州': 20,
+    '葫芦岛': 10,
+    '秦皇岛': 0,
+    '唐山': 0,
+    '天津': 5,
+    '沧州': 0,
+    '滨州': 10,
+    '东营': 0,
+    '潍坊': 0,
+    '烟台': 0,
+    '威海': 0,
+    '青岛': 0,
+    '日照': 0,
+    '连云港': 0,
+    '盐城': 0,
+    '南通': 0,
+    '上海': 0,
+    '嘉兴': 0,
+    '杭州': 0,
+    '绍兴': 0,
+    '宁波': 0,
+    '台州': 0,
+    '温州': 0,
+    '福州': 0,
+    '莆田': 0,
+    '泉州': 0,
+    '厦门': 0,
+    '漳州': 0,
+    '潮州': 0,
+    '汕头': 0,
+    '汕尾': 0,
+    '惠州': 0,
+    '深圳': 0,
+    '东莞': 0,
+    '广州': 0,
+    '中山': 0,
+    '珠海': 0,
+    '江门': 0,
+    '阳江': 0,
+    '茂名': 0,
+    '湛江': 0,
+    '北海': 0,
+    '钦州': 0,
+    '防城港': 0,
+    '东兴': 0
+};
+
 // 地点信息增强数据 - 补充data.js中未包含的详细信息
 const enhancedLocationDetails = {
     '阿黑吐别克口岸': {
@@ -98,6 +198,11 @@ function normalizeLocationInfo(location) {
         location.style = generateDefaultStyle(location);
     }
     
+    // 添加海拔信息
+    if (!location.altitude && locationAltitudeData[location.name]) {
+        location.altitude = locationAltitudeData[location.name];
+    }
+    
     return location;
 }
 
@@ -177,17 +282,25 @@ function getLocationInfo(locationName) {
             province: '',
             culture: '暂无详细信息',
             food: '暂无详细信息',
-            attractions: []
+            attractions: [],
+            altitude: 0
         };
     }
     
-    return locationInfoDatabase.get(locationName) || {
+    const locationInfo = locationInfoDatabase.get(locationName) || {
         name: locationName,
         province: '',
         culture: '暂无详细信息',
         food: '暂无详细信息',
         attractions: []
     };
+    
+    // 确保海拔信息存在
+    if (!locationInfo.altitude && locationAltitudeData[locationName]) {
+        locationInfo.altitude = locationAltitudeData[locationName];
+    }
+    
+    return locationInfo;
 }
 
 // 更新地点信息显示
@@ -216,6 +329,17 @@ function updateLocationInfoDisplay(locationName) {
             console.warn(`未找到ID为${id}的元素`);
         }
     });
+    
+    // 更新海拔信息
+    const altitudeElement = document.getElementById('location-altitude');
+    if (altitudeElement) {
+        if (locationInfo.altitude && locationInfo.altitude > 0) {
+            altitudeElement.textContent = `海拔 ${locationInfo.altitude} 米`;
+            altitudeElement.style.display = 'block';
+        } else {
+            altitudeElement.style.display = 'none';
+        }
+    }
     
     // 更新风格描述
     const styleElement = document.getElementById('location-style');

@@ -704,29 +704,36 @@ function lerp(start, end, t) {
     return start + (end - start) * t;
 }
 
-// 语音播报函数 - 只播报风土人情
+// 语音播报函数 - 包含海拔信息和风土人情
 function speakLocation(location) {
     // 添加防御性检查，确保location参数有效
     if ('speechSynthesis' in window && location && location.name) {
         // 获取地点详细信息
         const locationInfo = getLocationInfo(location.name);
         const province = locationInfo.province || location.province || '';
+        const altitude = locationInfo.altitude || 0;
         
         // 创建语音实例
         const speech = new SpeechSynthesisUtterance();
         
-        // 使用天数跟踪的语音模板
+        // 使用天数跟踪的语音模板，海拔低于500米不播报海拔信息
         const speechTemplates = [
             {
-                intro: `第${animationState.dayCounter}天，到达${location.name}，${province}。`,
+                intro: altitude > 500 ? 
+                    `第${animationState.dayCounter}天，到达${location.name}，${province}，海拔${altitude}米。` :
+                    `第${animationState.dayCounter}天，到达${location.name}，${province}。`,
                 culture: (info) => `${extractKeyCulturePoint(info)}。`
             },
             {
-                intro: `第${animationState.dayCounter}天，我们来到${location.name}，${province}。`,
+                intro: altitude > 500 ? 
+                    `第${animationState.dayCounter}天，我们来到${location.name}，${province}，海拔高度${altitude}米。` :
+                    `第${animationState.dayCounter}天，我们来到${location.name}，${province}。`,
                 culture: (info) => `${extractKeyCulturePoint(info)}。`
             },
             {
-                intro: `第${animationState.dayCounter}天，抵达${location.name}，${province}。`,
+                intro: altitude > 500 ? 
+                    `第${animationState.dayCounter}天，抵达${location.name}，${province}，此处海拔${altitude}米。` :
+                    `第${animationState.dayCounter}天，抵达${location.name}，${province}。`,
                 culture: (info) => `${extractKeyCulturePoint(info)}。`
             }
         ];

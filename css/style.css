@@ -829,6 +829,40 @@ footer p {
     margin-bottom: 6px;
 }
 
+.location-meta-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 5px 0;
+    flex-wrap: wrap;
+}
+
+.altitude-info {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.altitude-info::before {
+    content: '⛰️';
+    font-size: 0.9em;
+}
+
+.altitude-info:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
 /* 地点名称和省份样式 - 现代风格 */
 #location-name {
     font-size: 1.5em;
