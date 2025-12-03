@@ -775,43 +775,57 @@ function speakLocation(location) {
         
         speech.text = speechText;
         speech.lang = 'zh-CN'; // 设置为中文
-        speech.volume = 1; // 音量 (0 to 1)
+        speech.volume = 1; // 音量 (0 to 1) - 已设置为最大值
         
-        // 不同的语音配置选项（语速、音调）- 提高语速范围
+        // 尝试优先选择音量较大的语音引擎
+        const voices = window.speechSynthesis.getVoices();
+        
+        // 按优先级选择语音：1) Microsoft语音 2) Natural语音 3) 其他中文语音
+        let selectedVoice = null;
+        
+        // 优先选择Microsoft语音（通常音量较大）
+        const microsoftVoices = voices.filter(voice => 
+            voice.lang === 'zh-CN' && voice.name.includes('Microsoft')
+        );
+        if (microsoftVoices.length > 0) {
+            selectedVoice = microsoftVoices[0];
+        }
+        
+        // 如果没有Microsoft语音，选择Natural语音
+        if (!selectedVoice) {
+            const naturalVoices = voices.filter(voice => 
+                voice.lang === 'zh-CN' && voice.name.includes('Natural')
+            );
+            if (naturalVoices.length > 0) {
+                selectedVoice = naturalVoices[0];
+            }
+        }
+        
+        // 如果还没有找到，选择任何中文语音
+        if (!selectedVoice) {
+            const chineseVoices = voices.filter(voice => voice.lang === 'zh-CN');
+            if (chineseVoices.length > 0) {
+                selectedVoice = chineseVoices[0];
+            }
+        }
+        
+        if (selectedVoice) {
+            speech.voice = selectedVoice;
+        }
+        
+        // 不同的语音配置选项（语速、音调）- 加快语速范围
         const voiceConfigs = [
-            { rate: 1.8, pitch: 1.1 }, // 较快，音调较高
-            { rate: 2.0, pitch: 1.0 }, // 快速，自然音调
-            { rate: 2.2, pitch: 0.9 }, // 很快，音调较低
-            { rate: 1.9, pitch: 1.2 }, // 较快偏快，音调偏高
-            { rate: 2.1, pitch: 0.95 }  // 快速，音调偏低
+            { rate: 2.0, pitch: 1.1 }, // 较快，音调较高
+            { rate: 2.2, pitch: 1.0 }, // 快，自然音调
+            { rate: 2.5, pitch: 0.9 }, // 较快偏快，音调较低
+            { rate: 2.1, pitch: 1.2 }, // 较快，音调偏高
+            { rate: 2.3, pitch: 0.95 }  // 快，音调偏低
         ];
         
         // 随机选择一个语音配置
         const randomConfig = voiceConfigs[Math.floor(Math.random() * voiceConfigs.length)];
         speech.rate = randomConfig.rate;
         speech.pitch = randomConfig.pitch;
-        
-        // 选择合适的语音
-        const voices = window.speechSynthesis.getVoices();
-        // 优先选择中文语音
-        const preferredVoices = voices.filter(voice => 
-            voice.lang === 'zh-CN' && 
-            (voice.localService || voice.name.includes('Natural') || voice.name.includes('Microsoft'))
-        );
-        
-        if (preferredVoices.length > 0) {
-            // 随机选择一个偏好语音，而不是总是选择第一个
-            const randomVoiceIndex = Math.floor(Math.random() * preferredVoices.length);
-            speech.voice = preferredVoices[randomVoiceIndex];
-        } else {
-            // 如果没有找到偏好语音，尝试选择任何中文语音
-            const chineseVoices = voices.filter(voice => voice.lang === 'zh-CN');
-            if (chineseVoices.length > 0) {
-                // 随机选择一个中文语音
-                const randomVoiceIndex = Math.floor(Math.random() * chineseVoices.length);
-                speech.voice = chineseVoices[randomVoiceIndex];
-            }
-        }
         
         // 语音开始事件 - 添加视觉反馈
         speech.onstart = function() {
@@ -827,8 +841,8 @@ function speakLocation(location) {
         speech.onend = function() {
             // 语音播放完成后，继续动画
             animationState.isRunning = true;
-            // 不要重置当前段起始时间，保持连续性，避免地图跳动
-            // animationState.currentSegmentStartTime = null;
+            // 重置当前段起始时间，确保下一段动画正确计时
+            animationState.currentSegmentStartTime = null;
             animationState.animationId = requestAnimationFrame(animationLoop);
             
             // 移除视觉反馈
