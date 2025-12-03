@@ -1014,9 +1014,31 @@ function startAnimation() {
         duration: 1
     });
     
-    animationState.isRunning = true;
-    animationState.isPaused = false;
-    animationState.animationId = requestAnimationFrame(animationLoop);
+    // 立即播报第一个地点的语音
+    if (currentPoint && currentPoint.name) {
+        // 更新车辆弹出窗口内容
+        if (animationState.vehicleMarker) {
+            animationState.vehicleMarker.setPopupContent(`
+                <div style="text-align: center;">
+                    <h4>🚗 模拟车辆</h4>
+                    <p>当前位置: ${currentPoint.name}</p>
+                    <p>${currentPoint.province}</p>
+                    <p>进度: ${animationState.currentIndex + 1}/${animationState.totalPoints}</p>
+                </div>
+            `);
+        }
+        
+        // 暂停动画，等待语音播报完成
+        animationState.isRunning = false;
+        
+        speakLocation(currentPoint);
+        // 更新地点信息显示
+        updateLocationInfoDisplay(currentPoint.name);
+    } else {
+        animationState.isRunning = true;
+        animationState.isPaused = false;
+        animationState.animationId = requestAnimationFrame(animationLoop);
+    }
     
     updateUIState();
 }
