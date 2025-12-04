@@ -870,14 +870,26 @@ function speakLocation(location) {
         let keyPoint = cultureInfo;
         
         // 提取最核心的文化信息（风土人情）
-        if (keyPoint.includes('文化')) {
-            const sentences = keyPoint.split(/[。！？]/).filter(s => s.includes('文化'));
+        const keywords = ['文化', '京族', '独弦琴', '哈节', '长桌宴', '非物质文化遗产', '海洋少数民族', '边境风情'];
+        
+        // 按优先级搜索关键词
+        for (const keyword of keywords) {
+            if (keyPoint.includes(keyword)) {
+                const sentences = keyPoint.split(/[。！？]/).filter(s => s.includes(keyword));
+                if (sentences.length > 0) {
+                    keyPoint = sentences[0];
+                    break; // 找到第一个匹配的关键词就停止
+                }
+            }
+        }
+        
+        // 如果没有找到包含关键词的句子，使用整个描述的前40个字符
+        if (keyPoint === cultureInfo && keyPoint.length > 0) {
+            const sentences = keyPoint.split(/[。！？]/);
             if (sentences.length > 0) {
                 keyPoint = sentences[0];
             }
         }
-        
-        // 如果没有找到包含文化的句子，使用整个描述
         
         // 控制最大长度，确保简洁
         if (keyPoint.length > 40) {
