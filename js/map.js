@@ -75,8 +75,7 @@ function initMap() {
     // 初始化标记点
     initMarkers();
     
-    // 绑定路线控制事件
-    bindRouteControls();
+
     
     // 绑定地图图层切换事件
     bindMapLayerControls();
@@ -135,20 +134,10 @@ function initMarkers() {
     // 清除现有标记点
     markersLayerGroup.clearLayers();
     
-    // 添加G219国道标记点
-    if (document.getElementById('g219').checked) {
-        addMarkers(G219Locations, '#ff8c00');
-    }
-    
-    // 添加G331国道标记点
-    if (document.getElementById('g331').checked) {
-        addMarkers(G331Locations, '#2ecc71');
-    }
-    
-    // 添加G228国道标记点
-    if (document.getElementById('g228').checked) {
-        addMarkers(G228Locations, '#3498db');
-    }
+    // 添加所有路线标记点（默认显示所有）
+    addMarkers(G219Locations, '#ff8c00');
+    addMarkers(G331Locations, '#2ecc71');
+    addMarkers(G228Locations, '#3498db');
 }
 
 // 添加标记点
@@ -180,6 +169,12 @@ function addMarkers(locations, color) {
         
         // 添加点击事件，更新地点详情面板
         marker.on('click', function() {
+            // 将地图中心定位到当前地点并放大
+            map.setView([loc.lat, loc.lng], 10, {
+                animate: true,
+                duration: 0.5
+            });
+            
             // 更新地点详情面板
             if (typeof updateLocationInfoDisplay === 'function') {
                 updateLocationInfoDisplay(loc.name);
@@ -201,6 +196,14 @@ function addMarkers(locations, color) {
                     item.style.borderColor = color;
                 }
             });
+            
+            // 同步更新模拟行程起点下拉菜单
+            const startLocationSelect = document.getElementById('start-location');
+            if (startLocationSelect) {
+                startLocationSelect.value = loc.name;
+                animationState.currentLocationId = loc.name;
+                resetAnimation();
+            }
         });
         
         // 添加到图层组
@@ -208,38 +211,7 @@ function addMarkers(locations, color) {
     });
 }
 
-// 绑定路线控制事件
-function bindRouteControls() {
-    // G219控制
-    document.getElementById('g219').addEventListener('change', function() {
-        if (this.checked) {
-            map.addLayer(g219Layer);
-        } else {
-            map.removeLayer(g219Layer);
-        }
-        initMarkers();
-    });
-    
-    // G331控制
-    document.getElementById('g331').addEventListener('change', function() {
-        if (this.checked) {
-            map.addLayer(g331Layer);
-        } else {
-            map.removeLayer(g331Layer);
-        }
-        initMarkers();
-    });
-    
-    // G228控制
-    document.getElementById('g228').addEventListener('change', function() {
-        if (this.checked) {
-            map.addLayer(g228Layer);
-        } else {
-            map.removeLayer(g228Layer);
-        }
-        initMarkers();
-    });
-}
+
 
 // 生成地点列表
 function generateLocationsList() {
@@ -304,9 +276,13 @@ function generateLocationsList() {
                 this.style.borderColor = '#e0d0c0';
             });
             
-            // 点击跳转到该地点并设置为模拟行程起点
+            // 点击设置为模拟行程起点
             li.addEventListener('click', function() {
-                map.setView([loc.lat, loc.lng], 10);
+                // 将地图中心定位到当前地点并放大
+                map.setView([loc.lat, loc.lng], 10, {
+                    animate: true,
+                    duration: 0.5
+                });
                 
                 // 移除其他活跃状态
                 document.querySelectorAll('.location-item.active').forEach(item => {
@@ -425,6 +401,16 @@ function initRouteAnimationControls() {
     if (startLocationSelect) {
         startLocationSelect.addEventListener('change', function() {
             animationState.currentLocationId = this.value;
+            
+            // 将地图中心定位到选中的地点
+            const selectedLocation = animationState.allLocations.find(loc => loc.name === this.value);
+            if (selectedLocation && map) {
+                map.setView([selectedLocation.lat, selectedLocation.lng], 10, {
+                    animate: true,
+                    duration: 0.5
+                });
+            }
+            
             resetAnimation();
         });
     }
@@ -447,13 +433,22 @@ function initRouteAnimationControls() {
     
     // 暂停按钮事件
     if (pauseBtn) {
-        pauseBtn.addEventListener('click', pauseAnimation);
+        pauseBtn.addEventListener('click', function() {
+    if (animationState.isPaused) {
+        resumeAnimation();
+    } else {
+        pauseAnimation();
+    }
+});
     }
     
     // 重置按钮事件
     if (resetBtn) {
         resetBtn.addEventListener('click', resetAnimation);
     }
+    
+    // 初始化UI状态
+    updateUIState();
 }
 
 // 根据起点和方向获取行程数据
@@ -837,13 +832,15 @@ function speakLocation(location) {
             }
         };
         
-        // 语音结束事件 - 继续动画
+        // 语音结束事件 - 继续动画（仅在未暂停状态下）
         speech.onend = function() {
-            // 语音播放完成后，继续动画
-            animationState.isRunning = true;
-            // 重置当前段起始时间，确保下一段动画正确计时
-            animationState.currentSegmentStartTime = null;
-            animationState.animationId = requestAnimationFrame(animationLoop);
+            // 语音播放完成后，只有在未暂停状态下才继续动画
+            if (!animationState.isPaused) {
+                animationState.isRunning = true;
+                // 重置当前段起始时间，确保下一段动画正确计时
+                animationState.currentSegmentStartTime = null;
+                animationState.animationId = requestAnimationFrame(animationLoop);
+            }
             
             // 移除视觉反馈
             const currentMarker = findMarkerByLocation(location);
@@ -1039,22 +1036,26 @@ function startAnimation() {
     });
     
     // 立即播报第一个地点的语音
-        if (currentPoint && currentPoint.name) {
-            // 更新车辆弹出窗口内容
-            if (animationState.vehicleMarker) {
-                animationState.vehicleMarker.setPopupContent(`
-                    <div style="text-align: center;">
-                        <h4 style="color: #b22222; margin-bottom: 5px;">🚗 ${currentPoint.name}</h4>
-                        <p style="color: black; margin-bottom: 3px;">${currentPoint.province}</p>
-                        <p style="color: black;">进度: ${animationState.currentIndex + 1}/${animationState.totalPoints}</p>
-                    </div>
-                `);
-                // 确保弹窗打开显示
-                animationState.vehicleMarker.openPopup();
-            }
+    if (currentPoint && currentPoint.name) {
+        // 更新车辆弹出窗口内容
+        if (animationState.vehicleMarker) {
+            animationState.vehicleMarker.setPopupContent(`
+                <div style="text-align: center;">
+                    <h4 style="color: #b22222; margin-bottom: 5px;">🚗 ${currentPoint.name}</h4>
+                    <p style="color: black; margin-bottom: 3px;">${currentPoint.province}</p>
+                    <p style="color: black;">进度: ${animationState.currentIndex + 1}/${animationState.totalPoints}</p>
+                </div>
+            `);
+            // 确保弹窗打开显示
+            animationState.vehicleMarker.openPopup();
+        }
         
         // 暂停动画，等待语音播报完成
         animationState.isRunning = false;
+        animationState.isPaused = false;
+        
+        // 立即更新UI状态，确保暂停按钮在语音播报期间可用
+        updateUIState();
         
         speakLocation(currentPoint);
         // 更新地点信息显示
@@ -1063,22 +1064,45 @@ function startAnimation() {
         animationState.isRunning = true;
         animationState.isPaused = false;
         animationState.animationId = requestAnimationFrame(animationLoop);
+        
+        // 更新UI状态
+        updateUIState();
     }
-    
-    updateUIState();
 }
 
 // 暂停动画
 function pauseAnimation() {
-    if (animationState.isRunning) {
+    // 如果动画正在运行，或者正在语音播报期间（isRunning为false但语音正在播放），都可以暂停
+    if (animationState.isRunning || (!animationState.isRunning && window.speechSynthesis.speaking)) {
         animationState.isRunning = false;
         animationState.isPaused = true;
         animationState.pausedTime += performance.now() - animationState.startTime;
         animationState.startTime = 0;
         
+        // 停止语音播报
+        if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.cancel();
+        }
+        
         if (animationState.animationId) {
             cancelAnimationFrame(animationState.animationId);
         }
+        
+        updateUIState();
+    }
+}
+
+// 继续动画
+function resumeAnimation() {
+    if (animationState.isPaused) {
+        animationState.isRunning = true;
+        animationState.isPaused = false;
+        animationState.startTime = performance.now() - animationState.pausedTime;
+        animationState.pausedTime = 0;
+        animationState.currentSegmentStartTime = null; // 重置当前段起始时间
+        
+        // 重新开始动画循环
+        animationState.animationId = requestAnimationFrame(animationLoop);
         
         updateUIState();
     }
@@ -1143,12 +1167,18 @@ function updateUIState() {
     const resetBtn = document.getElementById('reset-animation');
     const routeSelect = document.getElementById('route-select');
     
+    // 检查是否正在语音播报期间
+    const isSpeaking = window.speechSynthesis.speaking;
+    
     if (startBtn) {
+        // 开始按钮在动画运行且未暂停时禁用，其他情况可用
         startBtn.disabled = animationState.isRunning && !animationState.isPaused;
     }
     
     if (pauseBtn) {
-        pauseBtn.disabled = !animationState.isRunning;
+        // 暂停按钮在动画运行且未暂停时可用，或者在语音播报期间也可用
+        pauseBtn.disabled = !((animationState.isRunning && !animationState.isPaused) || 
+                             (!animationState.isRunning && isSpeaking && !animationState.isPaused));
     }
     
     if (resetBtn) {

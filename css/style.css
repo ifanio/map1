@@ -58,13 +58,13 @@ html, body {
 
 /* h4标题样式 */
 h4 {
-    font-size: 1.8em;
-    font-weight: 700;
-    margin: 0.8rem 0;
-    line-height: 1.2;
+    font-size: 1.4em;
+    font-weight: 600;
+    margin: 0.5rem 0;
+    line-height: 1.1;
     color: white;
     font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 /* 滚动条美化 */
@@ -102,7 +102,7 @@ header {
     z-index: 1001;
     overflow: hidden;
     transition: all 0.3s var(--smooth);
-    opacity: 0.95;
+    opacity: 0.85;
     min-width: 70%;
     border-radius: 0 0 var(--border-radius) var(--border-radius);
     backdrop-filter: blur(10px);
@@ -306,7 +306,9 @@ header p {
     position: absolute;
     top: 100px;
     right: 20px;
-    width: 240px;
+    width: 300px;
+    height: calc(100vh - 250px); /* 减少高度，避免与地点详情重叠 */
+    max-height: 70vh;
     z-index: 1000;
     overflow: hidden;
     display: flex;
@@ -434,7 +436,8 @@ header p {
     border-top: none;
     border-radius: 0 0 var(--border-radius) var(--border-radius);
     box-shadow: var(--shadow-sm);
-    max-height: 700px; /* 增大最大高度 */
+    height: calc(100% - 50px); /* 适应面板高度，减去头部高度 */
+    max-height: none; /* 移除最大高度限制 */
     animation: contentFadeIn 0.5s ease-out 0.3s both;
 }
 
@@ -499,14 +502,14 @@ header p {
 
 /* 面板标题样式 - 现代风格 */
 .panel-content h2 {
-    font-size: 1.3rem;
-    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
     color: var(--primary-color);
-    font-weight: 700;
+    font-weight: 600;
     position: relative;
-    padding-bottom: 0.5rem;
+    padding-bottom: 0.3rem;
     text-shadow: none;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
     display: inline-block;
 }
@@ -516,44 +519,48 @@ header p {
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 60px;
-    height: 3px;
+    width: 40px;
+    height: 2px;
     background: var(--primary-color);
-    border-radius: 2px;
+    border-radius: 1px;
 }
 
 .panel-content h3 {
-    font-size: 1rem;
-    margin: 1.2rem 0 0.8rem;
+    font-size: 0.9rem;
+    margin: 0.8rem 0 0.6rem;
     color: var(--secondary-color);
     font-weight: 600;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.2px;
     font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
 }
 
 /* 地图图层控制样式 */
 .map-layer-controls {
-    margin-bottom: 1.8rem;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 .map-layer-controls label {
     display: flex;
     align-items: center;
-    margin-bottom: 1rem;
     cursor: pointer;
-    padding: 0.8rem 1rem;
+    padding: 0.3rem 0.6rem;
     border-radius: var(--border-radius);
     transition: all 0.3s var(--smooth);
     background-color: var(--light-gray);
-    border: 2px solid transparent;
-    font-weight: 600;
-    font-size: 0.95rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 1px solid transparent;
+    font-weight: 500;
+    font-size: 0.75rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
     position: relative;
     overflow: hidden;
     animation: controlSlideIn 0.5s ease-out forwards;
     opacity: 0;
     transform: translateX(-20px);
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 @keyframes controlSlideIn {
@@ -569,9 +576,9 @@ header p {
 
 .map-layer-controls label:hover {
     background-color: var(--medium-gray);
-    transform: translateX(8px) scale(1.05);
+    transform: translateX(4px) scale(1.02);
     border-color: var(--primary-color);
-    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.2);
+    box-shadow: 0 3px 10px rgba(52, 152, 219, 0.15);
 }
 
 .map-layer-controls label::after {
@@ -591,26 +598,26 @@ header p {
 
 .map-layer-controls input[type="radio"] {
     position: relative;
-    width: 18px;
-    height: 18px;
-    margin-right: 0.75rem;
+    width: 16px;
+    height: 16px;
+    margin-right: 0.5rem;
     cursor: pointer;
     accent-color: var(--primary-color);
     transition: all 0.3s var(--bounce);
 }
 
 .map-layer-controls input[type="radio"]:checked {
-    transform: scale(1.2);
-    box-shadow: 0 0 0 2px var(--primary-color);
+    transform: scale(1.1);
+    box-shadow: 0 0 0 1px var(--primary-color);
 }
 
 /* 自定义单选按钮样式 */
 .map-layer-controls label::before {
     content: '';
     position: absolute;
-    width: 18px;
-    height: 18px;
-    border: 2px solid var(--primary-color);
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--primary-color);
     border-radius: 50%;
     opacity: 0;
     transition: var(--transition);
@@ -622,60 +629,60 @@ header p {
 
 /* 路线控制样式 */
 .route-controls {
-    margin-bottom: 1.8rem;
+    margin-bottom: 1rem;
 }
 
 .route-controls label {
     display: flex;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     cursor: pointer;
-    padding: 0.8rem 1rem;
+    padding: 0.5rem 0.8rem;
     border-radius: var(--border-radius);
     transition: var(--transition);
     background-color: var(--light-gray);
-    border: 2px solid transparent;
-    font-weight: 600;
+    border: 1px solid transparent;
+    font-weight: 500;
     position: relative;
     overflow: hidden;
-    font-size: 0.95rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    font-size: 0.85rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
 
 .route-controls label:hover {
     background-color: var(--medium-gray);
-    transform: translateX(8px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .route-controls input[type="checkbox"] {
     position: relative;
-    width: 18px;
-    height: 18px;
-    margin-right: 0.75rem;
+    width: 16px;
+    height: 16px;
+    margin-right: 0.5rem;
     cursor: pointer;
     accent-color: var(--success-color);
 }
 
 /* 路线特定样式 */
 .route-controls label[for="g219"] {
-    border-left: 5px solid var(--accent-color);
-    background: linear-gradient(90deg, rgba(255,87,34,0.1), var(--light-gray));
+    border-left: 3px solid var(--accent-color);
+    background: linear-gradient(90deg, rgba(255,87,34,0.08), var(--light-gray));
 }
 
 .route-controls label[for="g331"] {
-    border-left: 5px solid var(--primary-color);
-    background: linear-gradient(90deg, rgba(255,64,129,0.1), var(--light-gray));
+    border-left: 3px solid var(--primary-color);
+    background: linear-gradient(90deg, rgba(255,64,129,0.08), var(--light-gray));
 }
 
 .route-controls label[for="g228"] {
-    border-left: 5px solid var(--success-color);
-    background: linear-gradient(90deg, rgba(76,175,80,0.1), var(--light-gray));
+    border-left: 3px solid var(--success-color);
+    background: linear-gradient(90deg, rgba(76,175,80,0.08), var(--light-gray));
 }
 
 /* 地点列表样式 */
 .locations-list {
-    max-height: 300px;
+    height: calc(100% - 60px);
     overflow-y: auto;
     background-color: var(--white-color);
     border-radius: var(--border-radius);
@@ -758,7 +765,7 @@ footer p {
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.85), rgba(44, 62, 80, 0.85));
     color: var(--white-color);
     padding: 12px;
     box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.2);
@@ -2056,22 +2063,46 @@ body.loaded #map::before {
 .chinese-section-header {
     color: var(--dark-red);
     font-family: 'Noto Serif SC', serif;
-    font-size: 20px;
-    margin-top: 20px;
-    margin-bottom: 15px;
-    padding-bottom: 5px;
-    border-bottom: 3px solid var(--gold-color);
+    font-size: 18px;
+    margin-top: 15px;
+    margin-bottom: 10px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid var(--gold-color);
     position: relative;
 }
 
 .chinese-section-header::after {
     content: '';
     position: absolute;
-    bottom: -3px;
+    bottom: -2px;
     left: 0;
-    width: 50px;
-    height: 3px;
+    width: 40px;
+    height: 2px;
     background-color: var(--dark-red);
+}
+
+.modern-section-header {
+    color: var(--dark-color);
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 12px;
+    margin-bottom: 8px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid var(--primary-color);
+    position: relative;
+    letter-spacing: -0.2px;
+}
+
+.modern-section-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 30px;
+    height: 2px;
+    background-color: var(--primary-color);
+    border-radius: 1px;
 }
 
 .chinese-attractions-list {
