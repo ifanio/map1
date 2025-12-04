@@ -30,7 +30,10 @@ var animationState = {
     visitedPoints: [],
     trailLine: null,
     allLocations: [], // 所有地点的合并列表
-    dayCounter: 1 // 天数计数器，从第1天开始
+    dayCounter: 1, // 天数计数器，从第1天开始
+    mapSwitchTimer: null, // 地图切换定时器
+    currentMapType: 'satellite', // 当前地图类型：'satellite' 或 'standard'
+    mapSwitchInterval: 5000 // 地图切换间隔：5秒
 };
 
 // 初始化地图
@@ -313,21 +316,42 @@ function generateLocationsList() {
     });
 }
 
+// 切换地图类型
+function switchMapType(mapType) {
+    if (mapType === 'satellite') {
+        map.removeLayer(mapLayers.standard);
+        map.addLayer(mapLayers.satellite);
+        animationState.currentMapType = 'satellite';
+        // 更新UI单选按钮状态
+        const satelliteRadio = document.getElementById('satellite-map');
+        if (satelliteRadio) {
+            satelliteRadio.checked = true;
+        }
+    } else if (mapType === 'standard') {
+        map.removeLayer(mapLayers.satellite);
+        map.addLayer(mapLayers.standard);
+        animationState.currentMapType = 'standard';
+        // 更新UI单选按钮状态
+        const standardRadio = document.getElementById('standard-map');
+        if (standardRadio) {
+            standardRadio.checked = true;
+        }
+    }
+}
+
 // 绑定地图图层切换事件
 function bindMapLayerControls() {
     // 标准地图控制
     document.getElementById('standard-map').addEventListener('change', function() {
         if (this.checked) {
-            map.removeLayer(mapLayers.satellite);
-            map.addLayer(mapLayers.standard);
+            switchMapType('standard');
         }
     });
     
     // 卫星地图控制
     document.getElementById('satellite-map').addEventListener('change', function() {
         if (this.checked) {
-            map.removeLayer(mapLayers.standard);
-            map.addLayer(mapLayers.satellite);
+            switchMapType('satellite');
         }
     });
 }
@@ -993,6 +1017,8 @@ function animationLoop(timestamp) {
     if (currentIndex >= totalPoints && segmentProgress >= 1) {
         // 动画结束
         animationState.isRunning = false;
+        // 停止地图切换定时器
+        stopMapSwitchTimer();
         updateUIState();
         const statusText = document.getElementById('animation-status');
         if (statusText) {
@@ -1001,6 +1027,39 @@ function animationLoop(timestamp) {
     } else {
         // 如果动画正在运行，或者需要继续执行（比如语音播报完成后），则继续请求下一帧
         animationState.animationId = requestAnimationFrame(animationLoop);
+    }
+}
+
+// 开始地图切换定时器
+function startMapSwitchTimer() {
+    // 清除现有定时器
+    if (animationState.mapSwitchTimer) {
+        clearInterval(animationState.mapSwitchTimer);
+    }
+    
+    // 记录定时器启动时间
+    animationState.mapSwitchStartTime = performance.now();
+    
+    // 启动新的定时器，每隔5秒切换地图
+    animationState.mapSwitchTimer = setInterval(function() {
+        // 检查是否应该切换地图（动画运行中且未暂停，或者语音播报期间）
+        if ((animationState.isRunning && !animationState.isPaused) || 
+            (!animationState.isRunning && window.speechSynthesis.speaking)) {
+            // 切换地图类型
+            if (animationState.currentMapType === 'satellite') {
+                switchMapType('standard');
+            } else {
+                switchMapType('satellite');
+            }
+        }
+    }, animationState.mapSwitchInterval);
+}
+
+// 停止地图切换定时器
+function stopMapSwitchTimer() {
+    if (animationState.mapSwitchTimer) {
+        clearInterval(animationState.mapSwitchTimer);
+        animationState.mapSwitchTimer = null;
     }
 }
 
@@ -1021,6 +1080,9 @@ function startAnimation() {
     animationState.isRunning = true;
     animationState.isPaused = false;
     animationState.dayCounter = 1; // 重置天数计数器
+    
+    // 启动地图切换定时器
+    startMapSwitchTimer();
     
     // 初始化车辆和轨迹
     createVehicleMarker();
@@ -1082,6 +1144,9 @@ function pauseAnimation() {
             window.speechSynthesis.cancel();
         }
         
+        // 停止地图切换定时器
+        stopMapSwitchTimer();
+        
         if (animationState.animationId) {
             cancelAnimationFrame(animationState.animationId);
         }
@@ -1099,6 +1164,9 @@ function resumeAnimation() {
         animationState.pausedTime = 0;
         animationState.currentSegmentStartTime = null; // 重置当前段起始时间
         
+        // 重新启动地图切换定时器
+        startMapSwitchTimer();
+        
         // 重新开始动画循环
         animationState.animationId = requestAnimationFrame(animationLoop);
         
@@ -1112,6 +1180,9 @@ function resetAnimation() {
     if (animationState.animationId) {
         cancelAnimationFrame(animationState.animationId);
     }
+    
+    // 停止地图切换定时器
+    stopMapSwitchTimer();
     
     // 重置状态
     animationState.isRunning = false;
