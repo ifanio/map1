@@ -33,7 +33,7 @@ var animationState = {
     dayCounter: 1, // 天数计数器，从第1天开始
     mapSwitchTimer: null, // 地图切换定时器
     currentMapType: 'satellite', // 当前地图类型：'satellite' 或 'standard'
-    mapSwitchInterval: 5000 // 地图切换间隔：5秒
+    mapSwitchInterval: 8000 // 地图切换间隔：初始为卫星地图显示8秒
 };
 
 // 初始化地图
@@ -200,12 +200,12 @@ function addMarkers(locations, color) {
                 }
             });
             
-            // 同步更新模拟行程起点下拉菜单
+            // 同步更新模拟行程起点下拉菜单（但不重置动画）
             const startLocationSelect = document.getElementById('start-location');
             if (startLocationSelect) {
                 startLocationSelect.value = loc.name;
                 animationState.currentLocationId = loc.name;
-                resetAnimation();
+                // 移除resetAnimation()调用，避免触发路线连接逻辑
             }
         });
         
@@ -287,6 +287,11 @@ function generateLocationsList() {
                     duration: 0.5
                 });
                 
+                // 更新地点详情面板
+                if (typeof updateLocationInfoDisplay === 'function') {
+                    updateLocationInfoDisplay(loc.name);
+                }
+                
                 // 移除其他活跃状态
                 document.querySelectorAll('.location-item.active').forEach(item => {
                     item.classList.remove('active');
@@ -299,12 +304,12 @@ function generateLocationsList() {
                 this.style.backgroundColor = '#e0d0c0';
                 this.style.borderColor = route.color;
                 
-                // 设置为模拟行程起点
+                // 设置为模拟行程起点（但不重置动画）
                 const startLocationSelect = document.getElementById('start-location');
                 if (startLocationSelect) {
                     startLocationSelect.value = loc.name;
                     animationState.currentLocationId = loc.name;
-                    resetAnimation();
+                    // 移除resetAnimation()调用，避免触发路线连接逻辑
                 }
             });
             
@@ -433,6 +438,11 @@ function initRouteAnimationControls() {
                     animate: true,
                     duration: 0.5
                 });
+                
+                // 更新地点详情面板
+                if (typeof updateLocationInfoDisplay === 'function') {
+                    updateLocationInfoDisplay(selectedLocation.name);
+                }
             }
             
             resetAnimation();
@@ -526,7 +536,7 @@ function getCurrentRouteData() {
             // G228顺时针：丹东 → 东兴
             const currentLocation = fullRouteData[startIndex];
             
-            // 先走完G228到东兴，再连接G219东兴继续，然后连接到G331阿黑吐别克口岸，最后连接到G228丹东
+            // 先走完G228到东兴，再连接G219东兴继续，然后连接到G331白沙湖，最后连接到G228丹东
             const g228Remaining = fullRouteData.slice(startIndex);
             const g219Reversed = [...G219Locations].reverse(); // G219顺时针需要反转
             const g331Reversed = [...G331Locations].reverse(); // G331顺时针需要反转
@@ -539,20 +549,20 @@ function getCurrentRouteData() {
             const currentLocation = fullRouteData[startIndex];
             
             if (currentLocation.name === '喀纳斯') {
-                // 如果到达G219终点喀纳斯，连接到G331阿黑吐别克口岸并继续G331路线
+                // 如果到达G219终点喀纳斯，连接到G331白沙湖并继续G331路线
                 const g331Reversed = [...G331Locations].reverse(); // G331顺时针需要反转
-                const heiheIndex = g331Reversed.findIndex(loc => loc.name === '阿黑吐别克口岸');
+                const heiheIndex = g331Reversed.findIndex(loc => loc.name === '白沙湖');
                 if (heiheIndex !== -1) {
-                    // 从阿黑吐别克口岸开始继续G331路线，然后连接到G228
+                    // 从白沙湖开始继续G331路线，然后连接到G228
                     const g331Route = g331Reversed.slice(heiheIndex);
                     const g228Route = G228Locations.slice(1); // 跳过G228丹东重复点
                     return [...g331Route, ...g228Route];
                 }
             } else {
-                // 先走完G219到喀纳斯，再连接G331阿黑吐别克口岸继续，然后连接到G228
+                // 先走完G219到喀纳斯，再连接G331白沙湖继续，然后连接到G228
                 const g219Remaining = fullRouteData.slice(startIndex);
                 const g331Reversed = [...G331Locations].reverse(); // G331顺时针需要反转
-                const heiheIndex = g331Reversed.findIndex(loc => loc.name === '阿黑吐别克口岸');
+                const heiheIndex = g331Reversed.findIndex(loc => loc.name === '白沙湖');
                 if (heiheIndex !== -1) {
                     const g331Route = g331Reversed.slice(heiheIndex);
                     const g228Route = G228Locations.slice(1); // 跳过G228丹东重复点
@@ -560,7 +570,7 @@ function getCurrentRouteData() {
                 }
             }
         } else if (startLocation.route === 'g331') {
-            // G331顺时针：阿黑吐别克口岸 → 丹东
+            // G331顺时针：白沙湖 → 丹东
             const currentLocation = fullRouteData[startIndex];
             
             if (currentLocation.name === '丹东') {
@@ -1040,7 +1050,7 @@ function startMapSwitchTimer() {
     // 记录定时器启动时间
     animationState.mapSwitchStartTime = performance.now();
     
-    // 启动新的定时器，每隔5秒切换地图
+    // 启动新的定时器，根据当前地图类型设置不同的切换间隔
     animationState.mapSwitchTimer = setInterval(function() {
         // 检查是否应该切换地图（动画运行中且未暂停，或者语音播报期间）
         if ((animationState.isRunning && !animationState.isPaused) || 
@@ -1048,9 +1058,17 @@ function startMapSwitchTimer() {
             // 切换地图类型
             if (animationState.currentMapType === 'satellite') {
                 switchMapType('standard');
+                // 标准地图显示5秒
+                animationState.mapSwitchInterval = 5000;
             } else {
                 switchMapType('satellite');
+                // 卫星地图显示8秒
+                animationState.mapSwitchInterval = 8000;
             }
+            
+            // 重新设置定时器间隔
+            clearInterval(animationState.mapSwitchTimer);
+            animationState.mapSwitchTimer = setInterval(arguments.callee, animationState.mapSwitchInterval);
         }
     }, animationState.mapSwitchInterval);
 }
