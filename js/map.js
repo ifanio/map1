@@ -502,16 +502,14 @@ function getCurrentRouteData() {
             // G228顺时针：丹东 → 东兴
             const currentLocation = fullRouteData[startIndex];
             
-            if (currentLocation.name === '东兴') {
-                    // 如果到达G228终点东兴，连接到G219东兴并继续G219路线
-                    const g219Reversed = [...G219Locations].reverse(); // G219顺时针需要反转
-                    return g219Reversed; // 直接返回G219路线，包含东兴
-                } else {
-                    // 先走完G228到东兴，再连接G219东兴继续
-                    const g228Remaining = fullRouteData.slice(startIndex);
-                    const g219Reversed = [...G219Locations].reverse(); // G219顺时针需要反转
-                    return [...g228Remaining, ...g219Reversed.slice(1)]; // 跳过G219东兴重复点
-                }
+            // 先走完G228到东兴，再连接G219东兴继续，然后连接到G331阿黑吐别克口岸，最后连接到G228丹东
+            const g228Remaining = fullRouteData.slice(startIndex);
+            const g219Reversed = [...G219Locations].reverse(); // G219顺时针需要反转
+            const g331Reversed = [...G331Locations].reverse(); // G331顺时针需要反转
+            const g228Original = G228Locations.slice(1); // 跳过G228丹东重复点
+            
+            // 返回完整的顺时针路线：G228剩余部分 → G219 → G331 → G228
+            return [...g228Remaining, ...g219Reversed.slice(1), ...g331Reversed.slice(1), ...g228Original];
         } else if (startLocation.route === 'g219') {
             // G219顺时针：东兴 → 喀纳斯
             const currentLocation = fullRouteData[startIndex];
