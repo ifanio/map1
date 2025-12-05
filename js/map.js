@@ -946,25 +946,39 @@ function speakLocation(location) {
         // 创建语音实例
         const speech = new SpeechSynthesisUtterance();
         
-        // 使用天数跟踪的语音模板，海拔低于500米不播报海拔信息
+        // 判断行政区划类型（自治区、直辖市、特别行政区、省）
+        const autonomousRegions = ['新疆', '西藏', '内蒙古', '广西', '宁夏'];
+        const municipalities = ['北京', '天津', '上海', '重庆'];
+        const specialRegions = ['香港', '澳门'];
+        
+        let regionSuffix = '省'; // 默认为省
+        
+        if (autonomousRegions.includes(province)) {
+            regionSuffix = '自治区';
+        } else if (municipalities.includes(province)) {
+            regionSuffix = '市';
+        } else if (specialRegions.includes(province)) {
+            regionSuffix = '特别行政区';
+        }
+        
         const speechTemplates = [
             {
                 intro: altitude > 500 ? 
-                    `第${animationState.dayCounter}天，到达${location.name}，${province}，海拔${altitude}米。` :
-                    `第${animationState.dayCounter}天，到达${location.name}，${province}。`,
-                culture: (info) => `${extractKeyCulturePoint(info)}。`
+                    `第${animationState.dayCounter}天，到达${location.name}，${province}${regionSuffix}，海拔${altitude}米。` :
+                    `第${animationState.dayCounter}天，到达${location.name}，${province}${regionSuffix}。`,
+                culture: (info) => `${getCompleteSentence(info, 40)}`
             },
             {
                 intro: altitude > 500 ? 
-                    `第${animationState.dayCounter}天，我们来到${location.name}，${province}，海拔高度${altitude}米。` :
-                    `第${animationState.dayCounter}天，我们来到${location.name}，${province}。`,
-                culture: (info) => `${extractKeyCulturePoint(info)}。`
+                    `第${animationState.dayCounter}天，来到${location.name}，${province}${regionSuffix}，海拔${altitude}米。` :
+                    `第${animationState.dayCounter}天，来到${location.name}，${province}${regionSuffix}。`,
+                culture: (info) => `${getCompleteSentence(info, 50)}`
             },
             {
                 intro: altitude > 500 ? 
-                    `第${animationState.dayCounter}天，抵达${location.name}，${province}，此处海拔${altitude}米。` :
-                    `第${animationState.dayCounter}天，抵达${location.name}，${province}。`,
-                culture: (info) => `${extractKeyCulturePoint(info)}。`
+                    `第${animationState.dayCounter}天，抵达${location.name}，${province}${regionSuffix}，海拔${altitude}米。` :
+                    `第${animationState.dayCounter}天，抵达${location.name}，${province}${regionSuffix}。`,
+                culture: (info) => `${getCompleteSentence(info, 60)}`
             }
         ];
         
@@ -983,191 +997,68 @@ function speakLocation(location) {
         speech.lang = 'zh-CN'; // 设置为中文
         speech.volume = 1; // 音量 (0 to 1) - 已设置为最大值
         
-        // 获取所有可用的中文语音角色
-        const voices = window.speechSynthesis.getVoices();
+        // 获取所有可用的中文语音角色（Chrome兼容性处理）
+        let voices = window.speechSynthesis.getVoices();
+        
+        // Chrome浏览器可能需要等待voiceschanged事件
+        if (voices.length === 0) {
+            console.log('语音列表为空，跳过语音播报，直接继续动画');
+            // 直接继续动画
+            animationState.isRunning = true;
+            animationState.currentSegmentStartTime = null;
+            animationState.animationId = requestAnimationFrame(animationLoop);
+            return;
+        }
+        
+        // 选择中文语音
         const chineseVoices = voices.filter(voice => voice.lang === 'zh-CN');
-        
-        // 按优先级选择语音：1) Microsoft语音 2) Natural语音 3) 其他中文语音
-        let availableVoices = [];
-        
-        // 优先选择Microsoft语音（通常音量较大）
-        const microsoftVoices = chineseVoices.filter(voice => voice.name.includes('Microsoft'));
-        if (microsoftVoices.length > 0) {
-            availableVoices = availableVoices.concat(microsoftVoices);
-        }
-        
-        // 选择Natural语音
-        const naturalVoices = chineseVoices.filter(voice => voice.name.includes('Natural'));
-        if (naturalVoices.length > 0) {
-            availableVoices = availableVoices.concat(naturalVoices);
-        }
-        
-        // 添加其他中文语音
-        const otherVoices = chineseVoices.filter(voice => 
-            !voice.name.includes('Microsoft') && !voice.name.includes('Natural')
-        );
-        if (otherVoices.length > 0) {
-            availableVoices = availableVoices.concat(otherVoices);
-        }
-        
-        // 如果没有找到任何中文语音，使用所有语音
-        if (availableVoices.length === 0) {
-            availableVoices = voices;
-        }
-        
-        // 循环选择语音角色
-        let selectedVoice = null;
-        if (availableVoices.length > 0) {
-            selectedVoice = availableVoices[animationState.currentVoiceIndex % availableVoices.length];
-            // 更新索引，为下一次播报准备
-            animationState.currentVoiceIndex = (animationState.currentVoiceIndex + 1) % availableVoices.length;
-        }
-        
-        if (selectedVoice) {
-            speech.voice = selectedVoice;
-        }
-        
-        // 不同的语音配置选项（语速、音调）- 加快语速范围
-        const voiceConfigs = [
-            { rate: 2.0, pitch: 1.1 }, // 较快，音调较高
-            { rate: 2.2, pitch: 1.0 }, // 快，自然音调
-            { rate: 2.5, pitch: 0.9 }, // 较快偏快，音调较低
-            { rate: 2.1, pitch: 1.2 }, // 较快，音调偏高
-            { rate: 2.3, pitch: 0.95 }  // 快，音调偏低
-        ];
-        
-        // 随机选择一个语音配置
-        const randomConfig = voiceConfigs[Math.floor(Math.random() * voiceConfigs.length)];
-        speech.rate = randomConfig.rate;
-        speech.pitch = randomConfig.pitch;
-        
-        // 语音开始事件 - 添加视觉反馈和状态更新
-        speech.onstart = function() {
-            // 在语音开始播放时，立即更新状态文本显示当前地点信息
-            if (cachedStatusText && location) {
-                cachedStatusText.textContent = `行驶中 - ${location.name} (${animationState.currentIndex + 1}/${animationState.totalPoints})`;
-            }
+        if (chineseVoices.length > 0) {
+            // 循环使用所有可用的中文语音角色
+            const voiceIndex = animationState.currentVoiceIndex % chineseVoices.length;
+            speech.voice = chineseVoices[voiceIndex];
             
-            // 给当前地点标记添加视觉反馈
-            const currentMarker = findMarkerByLocation(location);
-            if (currentMarker) {
-                // 添加闪烁效果
-                currentMarker.getElement().style.animation = 'pulse 0.5s ease-in-out 3';
-            }
-        };
+            // 更新语音索引，为下一次播报做准备
+            animationState.currentVoiceIndex = (animationState.currentVoiceIndex + 1) % chineseVoices.length;
+            
+            console.log(`使用语音角色: ${speech.voice.name} (${voiceIndex + 1}/${chineseVoices.length})`);
+        }
         
-        // 语音结束事件 - 继续动画（仅在未暂停状态下）
+        // 设置语音参数
+        speech.rate = 1.4; // 较快语速，信息传达更高效
+        speech.pitch = 1.0; // 正常音调
+        
+        // 语音事件处理
         speech.onend = function() {
-            console.log('语音播报结束，准备继续动画');
+            console.log('语音播报结束，继续动画');
             
-            // 语音播放完成后，只有在未暂停状态下才继续动画
             if (!animationState.isPaused) {
                 animationState.isRunning = true;
-                // 重置当前段起始时间，确保下一段动画正确计时
                 animationState.currentSegmentStartTime = null;
-                
-                // 确保动画索引没有越界
-                if (animationState.currentIndex < animationState.totalPoints - 1) {
-                    try {
-                        animationState.animationId = requestAnimationFrame(animationLoop);
-                        console.log('动画继续，当前索引:', animationState.currentIndex);
-                    } catch (error) {
-                        console.error('请求动画帧失败:', error);
-                        // 如果请求动画帧失败，手动触发动画继续
-                        setTimeout(() => {
-                            if (!animationState.isPaused) {
-                                animationState.animationId = requestAnimationFrame(animationLoop);
-                            }
-                        }, 100);
-                    }
-                } else {
-                    // 行程结束
-                    animationState.isRunning = false;
-                    if (cachedStatusText) {
-                        cachedStatusText.textContent = '行程结束！';
-                    }
-                    console.log('模拟行程结束');
-                }
-            }
-            
-            // 更新状态文本显示当前地点信息
-            if (cachedStatusText && location) {
-                cachedStatusText.textContent = `行驶中 - ${location.name} (${animationState.currentIndex + 1}/${animationState.totalPoints})`;
-            }
-            
-            // 移除视觉反馈
-            const currentMarker = findMarkerByLocation(location);
-            if (currentMarker) {
-                currentMarker.getElement().style.animation = '';
+                animationState.animationId = requestAnimationFrame(animationLoop);
             }
         };
         
-        // 语音错误事件
         speech.onerror = function(event) {
             console.warn('语音播报错误:', event.error);
             // 即使语音播报失败，也要继续动画
-            animationState.isRunning = true;
-            animationState.currentSegmentStartTime = null;
-            
-            // 确保动画索引没有越界
-            if (animationState.currentIndex < animationState.totalPoints - 1) {
-                try {
-                    animationState.animationId = requestAnimationFrame(animationLoop);
-                    console.log('语音播报失败，动画继续，当前索引:', animationState.currentIndex);
-                } catch (error) {
-                    console.error('请求动画帧失败:', error);
-                    // 如果请求动画帧失败，手动触发动画继续
-                    setTimeout(() => {
-                        if (!animationState.isPaused) {
-                            animationState.animationId = requestAnimationFrame(animationLoop);
-                        }
-                    }, 100);
-                }
-            } else {
-                // 行程结束
-                animationState.isRunning = false;
-                if (cachedStatusText) {
-                    cachedStatusText.textContent = '行程结束！';
-                }
-                console.log('模拟行程结束（语音播报失败）');
+            if (!animationState.isPaused) {
+                animationState.isRunning = true;
+                animationState.currentSegmentStartTime = null;
+                animationState.animationId = requestAnimationFrame(animationLoop);
             }
         };
         
-        // 播放语音，添加错误处理
-        try {
-            window.speechSynthesis.speak(speech);
-        } catch (error) {
-            console.error('语音播报失败:', error);
-            // 语音播报失败时，继续动画
-            animationState.isRunning = true;
-            animationState.currentSegmentStartTime = null;
-            
-            // 确保动画索引没有越界
-            if (animationState.currentIndex < animationState.totalPoints - 1) {
-                try {
-                    animationState.animationId = requestAnimationFrame(animationLoop);
-                    console.log('语音播报失败，动画继续，当前索引:', animationState.currentIndex);
-                } catch (error) {
-                    console.error('请求动画帧失败:', error);
-                    // 如果请求动画帧失败，手动触发动画继续
-                    setTimeout(() => {
-                        if (!animationState.isPaused) {
-                            animationState.animationId = requestAnimationFrame(animationLoop);
-                        }
-                    }, 100);
-                }
-            } else {
-                // 行程结束
-                animationState.isRunning = false;
-                if (cachedStatusText) {
-                    cachedStatusText.textContent = '行程结束！';
-                }
-                console.log('模拟行程结束（语音播报失败）');
-            }
+        // 更新状态为语音播报中
+        if (cachedStatusText) {
+            cachedStatusText.textContent = '语音播报中...';
         }
+        
+        // 播放语音
+        window.speechSynthesis.speak(speech);
+        
     } catch (error) {
-        console.error('语音播报初始化失败:', error);
-        // 语音播报初始化失败时，继续动画
+        console.error('语音播报失败:', error);
+        // 语音播报失败时，继续动画
         animationState.isRunning = true;
         animationState.currentSegmentStartTime = null;
         
@@ -1175,7 +1066,7 @@ function speakLocation(location) {
         if (animationState.currentIndex < animationState.totalPoints - 1) {
             try {
                 animationState.animationId = requestAnimationFrame(animationLoop);
-                console.log('语音播报初始化失败，动画继续，当前索引:', animationState.currentIndex);
+                console.log('语音播报失败，动画继续，当前索引:', animationState.currentIndex);
             } catch (error) {
                 console.error('请求动画帧失败:', error);
                 // 如果请求动画帧失败，手动触发动画继续
@@ -1191,38 +1082,70 @@ function speakLocation(location) {
             if (cachedStatusText) {
                 cachedStatusText.textContent = '行程结束！';
             }
-            console.log('模拟行程结束（语音播报初始化失败）');
+            console.log('模拟行程结束（语音播报失败）');
         }
     }
 }
+
+    // 辅助函数：获取完整的句子，确保不截断句子
+    function getCompleteSentence(text, maxLength) {
+        if (!text || text === '暂无详细信息') return '';
+        
+        // 按句子分隔符分割文本
+        const sentences = text.split(/[。！？]/).filter(sentence => sentence.trim().length > 0);
+        
+        if (sentences.length === 0) return '';
+        
+        // 找到第一个完整的句子，确保不超过最大长度
+        let result = sentences[0];
+        
+        // 如果第一个句子太长，尝试找到合适的断点
+        if (result.length > maxLength) {
+            // 在标点符号处断句
+            const punctuation = /[，；、]/;
+            const parts = result.split(punctuation);
+            
+            let current = '';
+            for (const part of parts) {
+                const temp = current ? current + '，' + part : part;
+                if (temp.length <= maxLength) {
+                    current = temp;
+                } else {
+                    break;
+                }
+            }
+            
+            if (current) {
+                result = current + '。';
+            } else {
+                // 如果还是太长，按字符数截取，但确保在词语边界
+                result = result.substring(0, maxLength - 1);
+                // 找到最后一个标点符号或空格
+                const lastPunctuation = Math.max(
+                    result.lastIndexOf('，'),
+                    result.lastIndexOf('；'),
+                    result.lastIndexOf('、'),
+                    result.lastIndexOf(' ')
+                );
+                
+                if (lastPunctuation > 0) {
+                    result = result.substring(0, lastPunctuation + 1) + '。';
+                } else {
+                    result += '。';
+                }
+            }
+        } else {
+            result += '。';
+        }
+        
+        return result;
+    }
 
     // 辅助函数：提取文化特色要点（风土人情）
     function extractKeyCulturePoint(cultureInfo) {
         let keyPoint = cultureInfo;
         
-        // 提取最核心的文化信息（风土人情）
-        // 按优先级从高到低排列的关键词数组
-        const keywords = [
-            // 一级关键词：核心文化元素
-            '京族', '独弦琴', '哈节', '长桌宴', '海洋文化', '渔猎文化',
-            // 二级关键词：特色习俗
-            '竹竿舞', '京族服饰', '京族语言', '京族文字', '祭海仪式',
-            // 三级关键词：文化类别
-            '非物质文化遗产', '海洋少数民族', '边境风情', '民族特色',
-            // 四级关键词：通用文化标识
-            '文化', '传统', '习俗', '风情'
-        ];
-        
-        // 按优先级搜索关键词
-        for (const keyword of keywords) {
-            if (keyPoint.includes(keyword)) {
-                const sentences = keyPoint.split(/[。！？]/).filter(s => s.includes(keyword));
-                if (sentences.length > 0) {
-                    keyPoint = sentences[0];
-                    break; // 找到第一个匹配的关键词就停止
-                }
-            }
-        }
+
         
         // 如果没有找到包含关键词的句子，使用整个描述的前40个字符
         if (keyPoint === cultureInfo && keyPoint.length > 0) {

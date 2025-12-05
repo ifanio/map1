@@ -2193,25 +2193,60 @@ body.loaded #map::before {
 
 /* 语音播报状态指示器 */
 .voice-status-indicator {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background: rgba(52, 152, 219, 0.9);
-    color: white;
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    z-index: 1000;
-    backdrop-filter: blur(10px);
-    animation: voiceStatusPulse 2s infinite;
+    display: flex;
+    align-items: center;
+    background: rgba(52, 152, 219, 0.1);
+    color: var(--dark-color);
+    padding: 8px 12px;
+    border-radius: var(--border-radius);
+    font-size: 0.9em;
+    margin-top: 8px;
+    border: 1px solid rgba(52, 152, 219, 0.3);
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
 }
 
-@keyframes voiceStatusPulse {
+.voice-status-indicator:hover {
+    background: rgba(52, 152, 219, 0.15);
+    border-color: rgba(52, 152, 219, 0.5);
+    transform: translateY(-1px);
+}
+
+.voice-icon {
+    margin-right: 8px;
+    font-size: 1.1em;
+    animation: voiceIconPulse 2s infinite;
+}
+
+@keyframes voiceIconPulse {
     0%, 100% {
-        background: rgba(52, 152, 219, 0.9);
+        transform: scale(1);
+        opacity: 1;
     }
     50% {
-        background: rgba(231, 76, 60, 0.9);
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+}
+
+.voice-info {
+    font-weight: 500;
+    color: var(--dark-color);
+}
+
+/* 语音播报时的高亮效果 */
+.voice-status-indicator.speaking {
+    background: rgba(46, 204, 113, 0.15);
+    border-color: rgba(46, 204, 113, 0.5);
+    animation: speakingPulse 1.5s infinite;
+}
+
+@keyframes speakingPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 5px rgba(46, 204, 113, 0);
     }
 }
 
