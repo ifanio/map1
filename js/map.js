@@ -1058,12 +1058,36 @@ function speakLocation(location) {
         
         // 语音结束事件 - 继续动画（仅在未暂停状态下）
         speech.onend = function() {
+            console.log('语音播报结束，准备继续动画');
+            
             // 语音播放完成后，只有在未暂停状态下才继续动画
             if (!animationState.isPaused) {
                 animationState.isRunning = true;
                 // 重置当前段起始时间，确保下一段动画正确计时
                 animationState.currentSegmentStartTime = null;
-                animationState.animationId = requestAnimationFrame(animationLoop);
+                
+                // 确保动画索引没有越界
+                if (animationState.currentIndex < animationState.totalPoints - 1) {
+                    try {
+                        animationState.animationId = requestAnimationFrame(animationLoop);
+                        console.log('动画继续，当前索引:', animationState.currentIndex);
+                    } catch (error) {
+                        console.error('请求动画帧失败:', error);
+                        // 如果请求动画帧失败，手动触发动画继续
+                        setTimeout(() => {
+                            if (!animationState.isPaused) {
+                                animationState.animationId = requestAnimationFrame(animationLoop);
+                            }
+                        }, 100);
+                    }
+                } else {
+                    // 行程结束
+                    animationState.isRunning = false;
+                    if (cachedStatusText) {
+                        cachedStatusText.textContent = '行程结束！';
+                    }
+                    console.log('模拟行程结束');
+                }
             }
             
             // 更新状态文本显示当前地点信息
@@ -1084,7 +1108,29 @@ function speakLocation(location) {
             // 即使语音播报失败，也要继续动画
             animationState.isRunning = true;
             animationState.currentSegmentStartTime = null;
-            animationState.animationId = requestAnimationFrame(animationLoop);
+            
+            // 确保动画索引没有越界
+            if (animationState.currentIndex < animationState.totalPoints - 1) {
+                try {
+                    animationState.animationId = requestAnimationFrame(animationLoop);
+                    console.log('语音播报失败，动画继续，当前索引:', animationState.currentIndex);
+                } catch (error) {
+                    console.error('请求动画帧失败:', error);
+                    // 如果请求动画帧失败，手动触发动画继续
+                    setTimeout(() => {
+                        if (!animationState.isPaused) {
+                            animationState.animationId = requestAnimationFrame(animationLoop);
+                        }
+                    }, 100);
+                }
+            } else {
+                // 行程结束
+                animationState.isRunning = false;
+                if (cachedStatusText) {
+                    cachedStatusText.textContent = '行程结束！';
+                }
+                console.log('模拟行程结束（语音播报失败）');
+            }
         };
         
         // 播放语音，添加错误处理
@@ -1095,14 +1141,58 @@ function speakLocation(location) {
             // 语音播报失败时，继续动画
             animationState.isRunning = true;
             animationState.currentSegmentStartTime = null;
-            animationState.animationId = requestAnimationFrame(animationLoop);
+            
+            // 确保动画索引没有越界
+            if (animationState.currentIndex < animationState.totalPoints - 1) {
+                try {
+                    animationState.animationId = requestAnimationFrame(animationLoop);
+                    console.log('语音播报失败，动画继续，当前索引:', animationState.currentIndex);
+                } catch (error) {
+                    console.error('请求动画帧失败:', error);
+                    // 如果请求动画帧失败，手动触发动画继续
+                    setTimeout(() => {
+                        if (!animationState.isPaused) {
+                            animationState.animationId = requestAnimationFrame(animationLoop);
+                        }
+                    }, 100);
+                }
+            } else {
+                // 行程结束
+                animationState.isRunning = false;
+                if (cachedStatusText) {
+                    cachedStatusText.textContent = '行程结束！';
+                }
+                console.log('模拟行程结束（语音播报失败）');
+            }
         }
     } catch (error) {
         console.error('语音播报初始化失败:', error);
         // 语音播报初始化失败时，继续动画
         animationState.isRunning = true;
         animationState.currentSegmentStartTime = null;
-        animationState.animationId = requestAnimationFrame(animationLoop);
+        
+        // 确保动画索引没有越界
+        if (animationState.currentIndex < animationState.totalPoints - 1) {
+            try {
+                animationState.animationId = requestAnimationFrame(animationLoop);
+                console.log('语音播报初始化失败，动画继续，当前索引:', animationState.currentIndex);
+            } catch (error) {
+                console.error('请求动画帧失败:', error);
+                // 如果请求动画帧失败，手动触发动画继续
+                setTimeout(() => {
+                    if (!animationState.isPaused) {
+                        animationState.animationId = requestAnimationFrame(animationLoop);
+                    }
+                }, 100);
+            }
+        } else {
+            // 行程结束
+            animationState.isRunning = false;
+            if (cachedStatusText) {
+                cachedStatusText.textContent = '行程结束！';
+            }
+            console.log('模拟行程结束（语音播报初始化失败）');
+        }
     }
 }
 
@@ -1255,13 +1345,35 @@ function animationLoop(timestamp) {
                     `);
                 }
                 
-                speakLocation(currentPoint);
                 // 更新地点信息显示
                 updateLocationInfoDisplay(currentPoint.name);
+                
+                // 尝试语音播报，但如果失败则继续动画
+                try {
+                    speakLocation(currentPoint);
+                } catch (error) {
+                    console.error('语音播报调用失败:', error);
+                    // 语音播报失败时，立即继续动画
+                    animationState.isRunning = true;
+                    animationState.currentSegmentStartTime = null;
+                    animationState.animationId = requestAnimationFrame(animationLoop);
+                }
+            } else {
+                // 如果地点信息无效，直接继续动画
+                console.warn('地点信息无效，跳过语音播报，继续动画');
+                animationState.isRunning = true;
+                animationState.currentSegmentStartTime = null;
+                animationState.animationId = requestAnimationFrame(animationLoop);
             }
+        } else {
+            // 如果索引无效，直接继续动画
+            console.warn('动画索引无效，继续动画');
+            animationState.isRunning = true;
+            animationState.currentSegmentStartTime = null;
+            animationState.animationId = requestAnimationFrame(animationLoop);
         }
         
-        // 注意：动画将在语音播报完成后的onend事件中继续
+        // 注意：动画将在语音播报完成后的onend事件中继续（如果语音播报成功）
         return; // 提前返回，等待语音播报完成
     }
     
