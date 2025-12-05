@@ -33,7 +33,8 @@ var animationState = {
     dayCounter: 1, // 天数计数器，从第1天开始
     mapSwitchTimer: null, // 地图切换定时器
     currentMapType: 'satellite', // 当前地图类型：'satellite' 或 'standard'
-    mapSwitchInterval: 8000 // 地图切换间隔：初始为卫星地图显示8秒
+    mapSwitchInterval: 8000, // 地图切换间隔：初始为卫星地图显示8秒
+    currentVoiceIndex: 0 // 当前语音角色索引，用于循环选择
 };
 
 // 初始化地图
@@ -804,36 +805,44 @@ function speakLocation(location) {
         speech.lang = 'zh-CN'; // 设置为中文
         speech.volume = 1; // 音量 (0 to 1) - 已设置为最大值
         
-        // 尝试优先选择音量较大的语音引擎
+        // 获取所有可用的中文语音角色
         const voices = window.speechSynthesis.getVoices();
+        const chineseVoices = voices.filter(voice => voice.lang === 'zh-CN');
         
         // 按优先级选择语音：1) Microsoft语音 2) Natural语音 3) 其他中文语音
-        let selectedVoice = null;
+        let availableVoices = [];
         
         // 优先选择Microsoft语音（通常音量较大）
-        const microsoftVoices = voices.filter(voice => 
-            voice.lang === 'zh-CN' && voice.name.includes('Microsoft')
-        );
+        const microsoftVoices = chineseVoices.filter(voice => voice.name.includes('Microsoft'));
         if (microsoftVoices.length > 0) {
-            selectedVoice = microsoftVoices[0];
+            availableVoices = availableVoices.concat(microsoftVoices);
         }
         
-        // 如果没有Microsoft语音，选择Natural语音
-        if (!selectedVoice) {
-            const naturalVoices = voices.filter(voice => 
-                voice.lang === 'zh-CN' && voice.name.includes('Natural')
-            );
-            if (naturalVoices.length > 0) {
-                selectedVoice = naturalVoices[0];
-            }
+        // 选择Natural语音
+        const naturalVoices = chineseVoices.filter(voice => voice.name.includes('Natural'));
+        if (naturalVoices.length > 0) {
+            availableVoices = availableVoices.concat(naturalVoices);
         }
         
-        // 如果还没有找到，选择任何中文语音
-        if (!selectedVoice) {
-            const chineseVoices = voices.filter(voice => voice.lang === 'zh-CN');
-            if (chineseVoices.length > 0) {
-                selectedVoice = chineseVoices[0];
-            }
+        // 添加其他中文语音
+        const otherVoices = chineseVoices.filter(voice => 
+            !voice.name.includes('Microsoft') && !voice.name.includes('Natural')
+        );
+        if (otherVoices.length > 0) {
+            availableVoices = availableVoices.concat(otherVoices);
+        }
+        
+        // 如果没有找到任何中文语音，使用所有语音
+        if (availableVoices.length === 0) {
+            availableVoices = voices;
+        }
+        
+        // 循环选择语音角色
+        let selectedVoice = null;
+        if (availableVoices.length > 0) {
+            selectedVoice = availableVoices[animationState.currentVoiceIndex % availableVoices.length];
+            // 更新索引，为下一次播报准备
+            animationState.currentVoiceIndex = (animationState.currentVoiceIndex + 1) % availableVoices.length;
         }
         
         if (selectedVoice) {
@@ -854,9 +863,15 @@ function speakLocation(location) {
         speech.rate = randomConfig.rate;
         speech.pitch = randomConfig.pitch;
         
-        // 语音开始事件 - 添加视觉反馈
+        // 语音开始事件 - 添加视觉反馈和状态更新
         speech.onstart = function() {
-            // 在语音开始播放时，给当前地点标记添加视觉反馈
+            // 在语音开始播放时，立即更新状态文本显示当前地点信息
+            const statusText = document.getElementById('animation-status');
+            if (statusText && location) {
+                statusText.textContent = `行驶中 - ${location.name} (${animationState.currentIndex + 1}/${animationState.totalPoints})`;
+            }
+            
+            // 给当前地点标记添加视觉反馈
             const currentMarker = findMarkerByLocation(location);
             if (currentMarker) {
                 // 添加闪烁效果
@@ -872,6 +887,12 @@ function speakLocation(location) {
                 // 重置当前段起始时间，确保下一段动画正确计时
                 animationState.currentSegmentStartTime = null;
                 animationState.animationId = requestAnimationFrame(animationLoop);
+            }
+            
+            // 更新状态文本显示当前地点信息
+            const statusText = document.getElementById('animation-status');
+            if (statusText && location) {
+                statusText.textContent = `行驶中 - ${location.name} (${animationState.currentIndex + 1}/${animationState.totalPoints})`;
             }
             
             // 移除视觉反馈
@@ -991,6 +1012,12 @@ function animationLoop(timestamp) {
             // 语音播报当前位置
             const currentPoint = routeData[animationState.currentIndex];
             if (currentPoint && currentPoint.name) {
+                // 立即更新状态文本显示当前地点信息
+                const statusText = document.getElementById('animation-status');
+                if (statusText && currentPoint) {
+                    statusText.textContent = `行驶中 - ${currentPoint.name} (${animationState.currentIndex + 1}/${animationState.totalPoints})`;
+                }
+                
                 // 立即更新车辆弹出窗口内容，确保语音播报开始时数据已更新
                 if (animationState.vehicleMarker) {
                     animationState.vehicleMarker.setPopupContent(`
@@ -1114,31 +1141,37 @@ function startAnimation() {
     });
     
     // 立即播报第一个地点的语音
-    if (currentPoint && currentPoint.name) {
-        // 更新车辆弹出窗口内容
-        if (animationState.vehicleMarker) {
-            animationState.vehicleMarker.setPopupContent(`
-                <div style="text-align: center;">
-                    <h4 style="color: #b22222; margin-bottom: 5px;">🚗 ${currentPoint.name}</h4>
-                    <p style="color: black; margin-bottom: 3px;">${currentPoint.province}</p>
-                    <p style="color: black;">进度: ${animationState.currentIndex + 1}/${animationState.totalPoints}</p>
-                </div>
-            `);
-            // 确保弹窗打开显示
-            animationState.vehicleMarker.openPopup();
-        }
-        
-        // 暂停动画，等待语音播报完成
-        animationState.isRunning = false;
-        animationState.isPaused = false;
-        
-        // 立即更新UI状态，确保暂停按钮在语音播报期间可用
-        updateUIState();
-        
-        speakLocation(currentPoint);
-        // 更新地点信息显示
-        updateLocationInfoDisplay(currentPoint.name);
-    } else {
+        if (currentPoint && currentPoint.name) {
+            // 更新车辆弹出窗口内容
+            if (animationState.vehicleMarker) {
+                animationState.vehicleMarker.setPopupContent(`
+                    <div style="text-align: center;">
+                        <h4 style="color: #b22222; margin-bottom: 5px;">🚗 ${currentPoint.name}</h4>
+                        <p style="color: black; margin-bottom: 3px;">${currentPoint.province}</p>
+                        <p style="color: black;">进度: ${animationState.currentIndex + 1}/${animationState.totalPoints}</p>
+                    </div>
+                `);
+                // 确保弹窗打开显示
+                animationState.vehicleMarker.openPopup();
+            }
+            
+            // 更新状态文本显示当前地点信息
+            const statusText = document.getElementById('animation-status');
+            if (statusText && currentPoint) {
+                statusText.textContent = `行驶中 - ${currentPoint.name} (${animationState.currentIndex + 1}/${animationState.totalPoints})`;
+            }
+            
+            // 暂停动画，等待语音播报完成
+            animationState.isRunning = false;
+            animationState.isPaused = false;
+            
+            // 立即更新UI状态，确保暂停按钮在语音播报期间可用
+            updateUIState();
+            
+            speakLocation(currentPoint);
+            // 更新地点信息显示
+            updateLocationInfoDisplay(currentPoint.name);
+        } else {
         animationState.isRunning = true;
         animationState.isPaused = false;
         animationState.animationId = requestAnimationFrame(animationLoop);
