@@ -1,49 +1,95 @@
+// =============================================
 // 中国边境线地图功能实现
+// =============================================
 
-// 地图对象
-var map;
+/**
+ * 地图配置常量
+ * @type {Object}
+ */
+const MAP_CONFIG = {
+    DEFAULT_ZOOM: 4,
+    DEFAULT_CENTER: [35.8617, 104.1954],
+    DETAIL_ZOOM: 10,
+    ANIMATION_ZOOM: 8,
+    ANIMATION_SPEED: 1,
+    MAP_SWITCH_INTERVALS: {
+        SATELLITE: 8000,
+        STANDARD: 5000
+    }
+};
 
-// 路线图层对象
-var g219Layer, g331Layer, g228Layer;
+/**
+ * 路线配置
+ * @type {Object}
+ */
+const ROUTE_CONFIG = {
+    G219: { color: '#ff8c00', name: 'G219' },
+    G331: { color: '#2ecc71', name: 'G331' },
+    G228: { color: '#3498db', name: 'G228' }
+};
 
-// 标记点图层组
-var markersLayerGroup;
+/**
+ * 地图对象
+ * @type {L.Map}
+ */
+let map;
 
-// 地图图层对象
-var mapLayers = {};
+/**
+ * 路线图层对象
+ * @type {Object}
+ */
+const routeLayers = {
+    g219: null,
+    g331: null,
+    g228: null
+};
 
-// 模拟行程动画相关变量
-var animationState = {
+/**
+ * 标记点图层组
+ * @type {L.LayerGroup}
+ */
+let markersLayerGroup;
+
+/**
+ * 地图图层对象
+ * @type {Object}
+ */
+let mapLayers = {};
+
+/**
+ * 模拟行程动画状态管理
+ * @type {Object}
+ */
+const animationState = {
     isRunning: false,
     isPaused: false,
     currentRoute: 'g219',
-    currentDirection: 'clockwise', // 'clockwise' 或 'counterclockwise'
-    currentLocationId: null, // 起点ID
+    currentDirection: 'clockwise',
+    currentLocationId: null,
     currentIndex: 0,
     totalPoints: 0,
-    speed: 1, // 1-10之间的值
+    speed: MAP_CONFIG.ANIMATION_SPEED,
     animationId: null,
     startTime: 0,
     pausedTime: 0,
-    currentSegmentStartTime: null, // 当前段的起始时间
+    currentSegmentStartTime: null,
     vehicleMarker: null,
     visitedPoints: [],
     trailLine: null,
-    allLocations: [], // 所有地点的合并列表
-    dayCounter: 1, // 天数计数器，从第1天开始
-    mapSwitchTimer: null, // 地图切换定时器
-    currentMapType: 'satellite', // 当前地图类型：'satellite' 或 'standard'
-    mapSwitchInterval: 8000, // 地图切换间隔：初始为卫星地图显示8秒
-    currentVoiceIndex: 0 // 当前语音角色索引，用于循环选择
+    allLocations: [],
+    dayCounter: 1,
+    mapSwitchTimer: null,
+    currentMapType: 'satellite',
+    mapSwitchInterval: MAP_CONFIG.MAP_SWITCH_INTERVALS.SATELLITE,
+    currentVoiceIndex: 0
 };
 
-// 初始化地图
-function initMap() {
-    // 创建地图实例，中心设置在中国境内
-    map = L.map('map').setView([35.8617, 104.1954], 4);
-    
-    // 定义地图图层
-    mapLayers = {
+/**
+ * 初始化地图图层配置
+ * @returns {Object} 地图图层配置对象
+ */
+function initMapLayers() {
+    return {
         // 标准地图 - 高德地图
         standard: L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
             subdomains: ['1', '2', '3', '4'],
@@ -66,6 +112,18 @@ function initMap() {
             })
         ])
     };
+}
+
+/**
+ * 初始化地图
+ * 创建地图实例，配置图层，初始化路线和标记点
+ */
+function initMap() {
+    // 创建地图实例，中心设置在中国境内
+    map = L.map('map').setView(MAP_CONFIG.DEFAULT_CENTER, MAP_CONFIG.DEFAULT_ZOOM);
+    
+    // 初始化地图图层
+    mapLayers = initMapLayers();
     
     // 添加默认图层（卫星地图）
     mapLayers.satellite.addTo(map);
@@ -79,8 +137,6 @@ function initMap() {
     // 初始化标记点
     initMarkers();
     
-
-    
     // 绑定地图图层切换事件
     bindMapLayerControls();
     
@@ -91,124 +147,167 @@ function initMap() {
     initRouteAnimationControls();
 }
 
-// 初始化路线
-function initRoutes() {
-    // G219国道路线 - 橙色
-    g219Layer = L.polyline(
-        G219Locations.map(loc => [loc.lat, loc.lng]),
-        { 
-            color: '#ff8c00', // 橙色
-            weight: 6, 
-            opacity: 0.9, 
-            name: 'G219',
-            lineCap: 'round',
-            lineJoin: 'round'
-        }
-    ).addTo(map);
+/**
+ * 创建路线图层
+ * @param {Array} locations - 地点数据数组
+ * @param {string} routeKey - 路线标识符
+ * @returns {L.Polyline} 路线图层对象
+ */
+function createRouteLayer(locations, routeKey) {
+    const config = ROUTE_CONFIG[routeKey.toUpperCase()];
+    if (!config) {
+        console.error(`未找到路线配置: ${routeKey}`);
+        return null;
+    }
     
-    // G331国道路线 - 绿色
-    g331Layer = L.polyline(
-        G331Locations.map(loc => [loc.lat, loc.lng]),
+    return L.polyline(
+        locations.map(loc => [loc.lat, loc.lng]),
         { 
-            color: '#2ecc71', // 绿色
+            color: config.color,
             weight: 6, 
             opacity: 0.9, 
-            name: 'G331',
+            name: config.name,
             lineCap: 'round',
             lineJoin: 'round'
         }
-    ).addTo(map);
-    
-    // G228国道路线 - 蓝色
-    g228Layer = L.polyline(
-        G228Locations.map(loc => [loc.lat, loc.lng]),
-        { 
-            color: '#3498db', // 蓝色
-            weight: 6, 
-            opacity: 0.9, 
-            name: 'G228',
-            lineCap: 'round',
-            lineJoin: 'round'
-        }
-    ).addTo(map);
+    );
 }
 
-// 初始化标记点
+/**
+ * 初始化路线图层
+ */
+function initRoutes() {
+    // 初始化G219国道路线
+    routeLayers.g219 = createRouteLayer(G219Locations, 'G219');
+    if (routeLayers.g219) {
+        routeLayers.g219.addTo(map);
+    }
+    
+    // 初始化G331国道路线
+    routeLayers.g331 = createRouteLayer(G331Locations, 'G331');
+    if (routeLayers.g331) {
+        routeLayers.g331.addTo(map);
+    }
+    
+    // 初始化G228国道路线
+    routeLayers.g228 = createRouteLayer(G228Locations, 'G228');
+    if (routeLayers.g228) {
+        routeLayers.g228.addTo(map);
+    }
+}
+
+/**
+ * 初始化标记点
+ */
 function initMarkers() {
     // 清除现有标记点
     markersLayerGroup.clearLayers();
     
     // 添加所有路线标记点（默认显示所有）
-    addMarkers(G219Locations, '#ff8c00');
-    addMarkers(G331Locations, '#2ecc71');
-    addMarkers(G228Locations, '#3498db');
+    addMarkers(G219Locations, 'G219');
+    addMarkers(G331Locations, 'G331');
+    addMarkers(G228Locations, 'G228');
 }
 
-// 添加标记点
-function addMarkers(locations, color) {
-    locations.forEach(loc => {
+/**
+ * 创建标记点自定义图标
+ * @param {string} locationName - 地点名称
+ * @param {string} routeKey - 路线标识符
+ * @returns {L.DivIcon} 自定义图标对象
+ */
+function createMarkerIcon(locationName, routeKey) {
+    const config = ROUTE_CONFIG[routeKey.toUpperCase()];
+    const color = config ? config.color : '#666666';
+    
+    return L.divIcon({
+        className: 'custom-div-icon',
+        html: `<div style="background-color: ${color}; color: white; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: bold; text-align: center; border: 2px solid ${color}; font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif; box-shadow: 0 2px 5px rgba(0,0,0,0.15); text-shadow: none;">${locationName}</div>`,
+        iconAnchor: [40, 40]
+    });
+}
+
+/**
+ * 创建标记点弹出窗口内容
+ * @param {Object} location - 地点数据对象
+ * @param {string} routeKey - 路线标识符
+ * @returns {string} 弹出窗口HTML内容
+ */
+function createMarkerPopupContent(location, routeKey) {
+    const config = ROUTE_CONFIG[routeKey.toUpperCase()];
+    const color = config ? config.color : '#666666';
+    
+    return `
+        <div style="font-size: 14px; font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif; background-color: #f8f9fa; border: 1px solid #bdc3c7; border-radius: 8px; padding: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <div style="font-size: 16px; font-weight: bold; color: ${color}; border-bottom: 1px solid #ecf0f1; padding-bottom: 5px; margin-bottom: 5px; text-align: center;">${location.name}</div>
+            <div style="margin-bottom: 3px;">省份: <span style="color: #2c3e50;">${location.province}</span></div>
+            <div>坐标: ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}</div>
+        </div>
+    `;
+}
+
+/**
+ * 处理标记点点击事件
+ * @param {Object} location - 地点数据对象
+ * @param {string} routeKey - 路线标识符
+ */
+function handleMarkerClick(location, routeKey) {
+    // 将地图中心定位到当前地点并放大
+    map.setView([location.lat, location.lng], MAP_CONFIG.DETAIL_ZOOM, {
+        animate: true,
+        duration: 0.5
+    });
+    
+    // 更新地点详情面板
+    if (typeof updateLocationInfoDisplay === 'function') {
+        updateLocationInfoDisplay(location.name);
+    }
+    
+    // 移除其他活跃状态
+    document.querySelectorAll('.location-item.active').forEach(item => {
+        item.classList.remove('active');
+        item.style.backgroundColor = '#f8f0e3';
+        item.style.borderColor = '#e0d0c0';
+    });
+    
+    // 设置对应的地点列表项为活跃状态
+    const locationItems = document.querySelectorAll('.location-item');
+    locationItems.forEach(item => {
+        if (item.textContent.includes(location.name)) {
+            item.classList.add('active');
+            item.style.backgroundColor = '#e0d0c0';
+            const config = ROUTE_CONFIG[routeKey.toUpperCase()];
+            item.style.borderColor = config ? config.color : '#666666';
+        }
+    });
+    
+    // 同步更新模拟行程起点下拉菜单
+    const startLocationSelect = document.getElementById('start-location');
+    if (startLocationSelect) {
+        startLocationSelect.value = location.name;
+        animationState.currentLocationId = location.name;
+    }
+}
+
+/**
+ * 添加标记点
+ * @param {Array} locations - 地点数据数组
+ * @param {string} routeKey - 路线标识符
+ */
+function addMarkers(locations, routeKey) {
+    locations.forEach(location => {
         // 创建标记点
-        const marker = L.marker([loc.lat, loc.lng], {
-            title: `${loc.name} (${loc.province})`
+        const marker = L.marker([location.lat, location.lng], {
+            title: `${location.name} (${location.province})`
         });
         
-        // 创建现代自定义图标
-        const icon = L.divIcon({
-            className: 'custom-div-icon',
-            html: `<div style="background-color: ${color}; color: white; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: bold; text-align: center; border: 2px solid ${color}; font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif; box-shadow: 0 2px 5px rgba(0,0,0,0.15); text-shadow: none;">${loc.name}</div>`,
-            // 移除固定宽度，让弹出框根据内容自适应
-            iconAnchor: [40, 40]
-        });
+        // 设置自定义图标
+        marker.setIcon(createMarkerIcon(location.name, routeKey));
         
-        marker.setIcon(icon);
+        // 绑定弹出窗口
+        marker.bindPopup(createMarkerPopupContent(location, routeKey));
         
-        // 添加现代弹出信息
-        marker.bindPopup(`
-            <div style="font-size: 14px; font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif; background-color: #f8f9fa; border: 1px solid #bdc3c7; border-radius: 8px; padding: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                <div style="font-size: 16px; font-weight: bold; color: ${color}; border-bottom: 1px solid #ecf0f1; padding-bottom: 5px; margin-bottom: 5px; text-align: center;">${loc.name}</div>
-                <div style="margin-bottom: 3px;">省份: <span style="color: #2c3e50;">${loc.province}</span></div>
-                <div>坐标: ${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}</div>
-            </div>
-        `);
-        
-        // 添加点击事件，更新地点详情面板
-        marker.on('click', function() {
-            // 将地图中心定位到当前地点并放大
-            map.setView([loc.lat, loc.lng], 10, {
-                animate: true,
-                duration: 0.5
-            });
-            
-            // 更新地点详情面板
-            if (typeof updateLocationInfoDisplay === 'function') {
-                updateLocationInfoDisplay(loc.name);
-            }
-            
-            // 移除其他活跃状态
-            document.querySelectorAll('.location-item.active').forEach(item => {
-                item.classList.remove('active');
-                item.style.backgroundColor = '#f8f0e3';
-                item.style.borderColor = '#e0d0c0';
-            });
-            
-            // 设置对应的地点列表项为活跃状态
-            const locationItems = document.querySelectorAll('.location-item');
-            locationItems.forEach(item => {
-                if (item.textContent.includes(loc.name)) {
-                    item.classList.add('active');
-                    item.style.backgroundColor = '#e0d0c0';
-                    item.style.borderColor = color;
-                }
-            });
-            
-            // 同步更新模拟行程起点下拉菜单（但不重置动画）
-            const startLocationSelect = document.getElementById('start-location');
-            if (startLocationSelect) {
-                startLocationSelect.value = loc.name;
-                animationState.currentLocationId = loc.name;
-                // 移除resetAnimation()调用，避免触发路线连接逻辑
-            }
-        });
+        // 添加点击事件
+        marker.on('click', () => handleMarkerClick(location, routeKey));
         
         // 添加到图层组
         marker.addTo(markersLayerGroup);
@@ -362,14 +461,19 @@ function bindMapLayerControls() {
     });
 }
 
+// 路线数据处理函数
+function getReversedRoute(routeLocations, routeName) {
+    return [...routeLocations].reverse().map(loc => ({ ...loc, route: routeName }));
+}
+
 // 生成所有地点的合并列表
 function generateAllLocationsList() {
     // 按照指定方向顺序合并所有路线的地点
     // G219: 东兴向喀纳斯方向（反转G219Locations数组）
-    const g219Reversed = [...G219Locations].reverse().map(loc => ({ ...loc, route: 'g219' }));
+    const g219Reversed = getReversedRoute(G219Locations, 'g219');
     
     // G331: 阿勒泰向丹东方向（反转G331Locations数组）
-    const g331Reversed = [...G331Locations].reverse().map(loc => ({ ...loc, route: 'g331' }));
+    const g331Reversed = getReversedRoute(G331Locations, 'g331');
     
     // G228: 丹东向东兴方向（保持原顺序）
     const g228Original = G228Locations.map(loc => ({ ...loc, route: 'g228' }));
@@ -487,7 +591,43 @@ function initRouteAnimationControls() {
 }
 
 // 根据起点和方向获取行程数据
+// 缓存当前路线数据，避免重复计算
+let cachedRouteData = null;
+let cacheKey = '';
+
+// DOM元素缓存，避免重复查询
+let cachedProgressBar = null;
+let cachedStatusText = null;
+
+/**
+ * 清除路线数据缓存
+ * 当动画状态发生变化时调用，确保下次获取最新数据
+ */
+function clearRouteCache() {
+    cachedRouteData = null;
+    cacheKey = '';
+    console.log('路线数据缓存已清除');
+}
+
+/**
+ * 清除DOM元素缓存
+ * 当DOM结构发生变化时调用，确保下次重新查询
+ */
+function clearDomCache() {
+    cachedProgressBar = null;
+    cachedStatusText = null;
+    console.log('DOM元素缓存已清除');
+}
+
 function getCurrentRouteData() {
+    // 生成缓存键：基于当前状态的关键参数
+    const newCacheKey = `${animationState.currentLocationId}_${animationState.currentDirection}_${animationState.allLocations.length}`;
+    
+    // 如果缓存有效，直接返回缓存数据
+    if (cachedRouteData && cacheKey === newCacheKey) {
+        return cachedRouteData;
+    }
+    
     // 找到当前选择的起点
     const startLocation = animationState.allLocations.find(loc => loc.name === animationState.currentLocationId);
     if (!startLocation) {
@@ -539,8 +679,8 @@ function getCurrentRouteData() {
             
             // 先走完G228到东兴，再连接G219东兴继续，然后连接到G331白沙湖，最后连接到G228丹东
             const g228Remaining = fullRouteData.slice(startIndex);
-            const g219Reversed = [...G219Locations].reverse(); // G219顺时针需要反转
-            const g331Reversed = [...G331Locations].reverse(); // G331顺时针需要反转
+            const g219Reversed = getReversedRoute(G219Locations, 'g219'); // G219顺时针需要反转
+            const g331Reversed = getReversedRoute(G331Locations, 'g331'); // G331顺时针需要反转
             const g228Original = G228Locations.slice(1); // 跳过G228丹东重复点
             
             // 返回完整的顺时针路线：G228剩余部分 → G219 → G331 → G228
@@ -551,7 +691,7 @@ function getCurrentRouteData() {
             
             if (currentLocation.name === '喀纳斯') {
                 // 如果到达G219终点喀纳斯，连接到G331白沙湖并继续G331路线
-                const g331Reversed = [...G331Locations].reverse(); // G331顺时针需要反转
+                const g331Reversed = getReversedRoute(G331Locations, 'g331'); // G331顺时针需要反转
                 const heiheIndex = g331Reversed.findIndex(loc => loc.name === '白沙湖');
                 if (heiheIndex !== -1) {
                     // 从白沙湖开始继续G331路线，然后连接到G228
@@ -562,7 +702,7 @@ function getCurrentRouteData() {
             } else {
                 // 先走完G219到喀纳斯，再连接G331白沙湖继续，然后连接到G228
                 const g219Remaining = fullRouteData.slice(startIndex);
-                const g331Reversed = [...G331Locations].reverse(); // G331顺时针需要反转
+                const g331Reversed = getReversedRoute(G331Locations, 'g331'); // G331顺时针需要反转
                 const heiheIndex = g331Reversed.findIndex(loc => loc.name === '白沙湖');
                 if (heiheIndex !== -1) {
                     const g331Route = g331Reversed.slice(heiheIndex);
@@ -586,9 +726,10 @@ function getCurrentRouteData() {
     }
     
     // 默认路线处理（包括逆时针和未匹配的顺时针情况）
+    let result;
     if (animationState.currentDirection === 'clockwise') {
         // 顺时针默认处理：从起点到路线末尾，再从路线开头到起点前一点
-        return [
+        result = [
             ...fullRouteData.slice(startIndex),
             ...fullRouteData.slice(0, startIndex)
         ];
@@ -596,13 +737,23 @@ function getCurrentRouteData() {
         // 逆时针：从起点到路线开头（反转），再加上路线末尾到起点后一个点（反转）
         const firstPart = fullRouteData.slice(0, startIndex + 1).reverse();
         const secondPart = fullRouteData.slice(startIndex + 1).reverse();
-        return [...firstPart, ...secondPart];
+        result = [...firstPart, ...secondPart];
     }
+    
+    // 更新缓存
+    cachedRouteData = result;
+    cacheKey = newCacheKey;
+    
+    return result;
 }
 
 // 获取当前路线的颜色
 function getCurrentRouteColor() {
-    switch (animationState.currentRoute) {
+    const routeData = getCurrentRouteData();
+    if (routeData.length === 0) return '#e74c3c';
+    
+    const currentRoute = routeData[0].route;
+    switch (currentRoute) {
         case 'g219':
             return '#e74c3c';
         case 'g331':
@@ -727,27 +878,35 @@ function updateVehiclePosition(currentLat, currentLng, currentPoint) {
 
 // 更新进度条
 function updateProgressBar() {
-    const progressBar = document.getElementById('progress-fill');
-    if (progressBar) {
+    // 使用缓存或查询DOM元素
+    if (!cachedProgressBar) {
+        cachedProgressBar = document.getElementById('progress-fill');
+    }
+    
+    if (cachedProgressBar) {
         const progress = (animationState.currentIndex / (animationState.totalPoints - 1)) * 100;
-        progressBar.style.width = `${progress}%`;
+        cachedProgressBar.style.width = `${progress}%`;
     }
 }
 
 // 更新状态文本
 function updateStatusText() {
-    const statusText = document.getElementById('animation-status');
-    if (!statusText) return;
+    // 使用缓存或查询DOM元素
+    if (!cachedStatusText) {
+        cachedStatusText = document.getElementById('animation-status');
+    }
+    
+    if (!cachedStatusText) return;
     
     const routeData = getCurrentRouteData();
     const currentPoint = routeData[animationState.currentIndex];
     
     if (animationState.isPaused) {
-        statusText.textContent = `已暂停 - 当前位置: ${currentPoint.name}`;
+        cachedStatusText.textContent = `已暂停 - 当前位置: ${currentPoint.name}`;
     } else if (animationState.isRunning) {
-        statusText.textContent = `行驶中 - ${currentPoint.name} (${animationState.currentIndex + 1}/${animationState.totalPoints})`;
+        cachedStatusText.textContent = `行驶中 - ${currentPoint.name} (${animationState.currentIndex + 1}/${animationState.totalPoints})`;
     } else {
-        statusText.textContent = '准备就绪';
+        cachedStatusText.textContent = '准备就绪';
     }
 }
 
@@ -756,10 +915,29 @@ function lerp(start, end, t) {
     return start + (end - start) * t;
 }
 
-// 语音播报函数 - 包含海拔信息和风土人情
+/**
+ * 语音播报函数 - 包含海拔信息和风土人情
+ * @param {Object} location - 地点信息对象
+ */
 function speakLocation(location) {
     // 添加防御性检查，确保location参数有效
-    if ('speechSynthesis' in window && location && location.name) {
+    if (!location || typeof location !== 'object') {
+        console.warn('语音播报：location参数无效');
+        return;
+    }
+    
+    if (!location.name || typeof location.name !== 'string') {
+        console.warn('语音播报：地点名称无效');
+        return;
+    }
+    
+    // 检查浏览器是否支持语音合成
+    if (!('speechSynthesis' in window)) {
+        console.warn('浏览器不支持语音合成功能');
+        return;
+    }
+    
+    try {
         // 获取地点详细信息
         const locationInfo = getLocationInfo(location.name);
         const province = locationInfo.province || location.province || '';
@@ -866,9 +1044,8 @@ function speakLocation(location) {
         // 语音开始事件 - 添加视觉反馈和状态更新
         speech.onstart = function() {
             // 在语音开始播放时，立即更新状态文本显示当前地点信息
-            const statusText = document.getElementById('animation-status');
-            if (statusText && location) {
-                statusText.textContent = `行驶中 - ${location.name} (${animationState.currentIndex + 1}/${animationState.totalPoints})`;
+            if (cachedStatusText && location) {
+                cachedStatusText.textContent = `行驶中 - ${location.name} (${animationState.currentIndex + 1}/${animationState.totalPoints})`;
             }
             
             // 给当前地点标记添加视觉反馈
@@ -890,9 +1067,8 @@ function speakLocation(location) {
             }
             
             // 更新状态文本显示当前地点信息
-            const statusText = document.getElementById('animation-status');
-            if (statusText && location) {
-                statusText.textContent = `行驶中 - ${location.name} (${animationState.currentIndex + 1}/${animationState.totalPoints})`;
+            if (cachedStatusText && location) {
+                cachedStatusText.textContent = `行驶中 - ${location.name} (${animationState.currentIndex + 1}/${animationState.totalPoints})`;
             }
             
             // 移除视觉反馈
@@ -911,16 +1087,41 @@ function speakLocation(location) {
             animationState.animationId = requestAnimationFrame(animationLoop);
         };
         
-        // 播放语音
-        window.speechSynthesis.speak(speech);
+        // 播放语音，添加错误处理
+        try {
+            window.speechSynthesis.speak(speech);
+        } catch (error) {
+            console.error('语音播报失败:', error);
+            // 语音播报失败时，继续动画
+            animationState.isRunning = true;
+            animationState.currentSegmentStartTime = null;
+            animationState.animationId = requestAnimationFrame(animationLoop);
+        }
+    } catch (error) {
+        console.error('语音播报初始化失败:', error);
+        // 语音播报初始化失败时，继续动画
+        animationState.isRunning = true;
+        animationState.currentSegmentStartTime = null;
+        animationState.animationId = requestAnimationFrame(animationLoop);
     }
-    
+}
+
     // 辅助函数：提取文化特色要点（风土人情）
     function extractKeyCulturePoint(cultureInfo) {
         let keyPoint = cultureInfo;
         
         // 提取最核心的文化信息（风土人情）
-        const keywords = ['文化', '京族', '独弦琴', '哈节', '长桌宴', '非物质文化遗产', '海洋少数民族', '边境风情'];
+        // 按优先级从高到低排列的关键词数组
+        const keywords = [
+            // 一级关键词：核心文化元素
+            '京族', '独弦琴', '哈节', '长桌宴', '海洋文化', '渔猎文化',
+            // 二级关键词：特色习俗
+            '竹竿舞', '京族服饰', '京族语言', '京族文字', '祭海仪式',
+            // 三级关键词：文化类别
+            '非物质文化遗产', '海洋少数民族', '边境风情', '民族特色',
+            // 四级关键词：通用文化标识
+            '文化', '传统', '习俗', '风情'
+        ];
         
         // 按优先级搜索关键词
         for (const keyword of keywords) {
@@ -948,7 +1149,6 @@ function speakLocation(location) {
         
         return keyPoint;
     }
-}
 
 // 辅助函数：根据地点信息查找对应的标记点
 function findMarkerByLocation(location) {
@@ -971,10 +1171,37 @@ function findMarkerByLocation(location) {
     return foundMarker;
 }
 
-// 动画循环
+/**
+ * 动画循环函数，处理车辆移动和语音播报逻辑
+ * @param {number} timestamp - 当前时间戳
+ */
 function animationLoop(timestamp) {
+    // 边界检查：确保动画状态有效
+    if (!animationState || typeof animationState !== 'object') {
+        console.error('动画状态无效，停止动画循环');
+        animationState.isRunning = false;
+        return;
+    }
+    
     const routeData = getCurrentRouteData();
+    
+    // 边界检查：确保路线数据有效
+    if (!Array.isArray(routeData) || routeData.length === 0) {
+        console.error('路线数据无效，停止动画循环');
+        animationState.isRunning = false;
+        updateUIState();
+        return;
+    }
+    
     const totalPoints = routeData.length - 1;
+    
+    // 边界检查：确保总点数有效
+    if (totalPoints <= 0) {
+        console.error('总点数无效，停止动画循环');
+        animationState.isRunning = false;
+        updateUIState();
+        return;
+    }
     
     // 如果是新的一段移动（刚从语音播报恢复或刚开始），重置该段的起始时间
     if (!animationState.currentSegmentStartTime) {
@@ -984,14 +1211,14 @@ function animationLoop(timestamp) {
     // 计算当前段的已用时间（相对于该段开始的时间）
     const segmentElapsed = timestamp - animationState.currentSegmentStartTime;
     
-    // 计算每段移动的持续时间（根据速度）
-    const segmentDuration = (300000 / animationState.speed) / totalPoints; // 每段的时长
+    // 计算每段移动的持续时间（根据速度），添加边界检查
+    const segmentDuration = Math.max(100, (300000 / Math.max(1, animationState.speed)) / totalPoints); // 每段的时长，最小100ms
     
     // 计算当前段内的进度（0到1之间）
     const segmentProgress = Math.min(segmentElapsed / segmentDuration, 1);
     
-    // 使用当前索引和段内进度计算精确位置
-    const currentIndex = animationState.currentIndex;
+    // 使用当前索引和段内进度计算精确位置，添加边界检查
+    const currentIndex = Math.max(0, Math.min(animationState.currentIndex, totalPoints));
     const nextIndex = Math.min(currentIndex + 1, totalPoints);
     const t = segmentProgress;
     
@@ -1013,9 +1240,8 @@ function animationLoop(timestamp) {
             const currentPoint = routeData[animationState.currentIndex];
             if (currentPoint && currentPoint.name) {
                 // 立即更新状态文本显示当前地点信息
-                const statusText = document.getElementById('animation-status');
-                if (statusText && currentPoint) {
-                    statusText.textContent = `行驶中 - ${currentPoint.name} (${animationState.currentIndex + 1}/${animationState.totalPoints})`;
+                if (cachedStatusText && currentPoint) {
+                    cachedStatusText.textContent = `行驶中 - ${currentPoint.name} (${animationState.currentIndex + 1}/${animationState.totalPoints})`;
                 }
                 
                 // 立即更新车辆弹出窗口内容，确保语音播报开始时数据已更新
@@ -1044,11 +1270,36 @@ function animationLoop(timestamp) {
     const currentPoint = routeData[currentIndex] || routeData[0];
     const nextPoint = routeData[nextIndex] || routeData[Math.min(currentIndex + 1, routeData.length - 1)];
     
+    // 边界检查：确保坐标点有效
+    if (!currentPoint || !nextPoint || 
+        typeof currentPoint.lat !== 'number' || typeof currentPoint.lng !== 'number' ||
+        typeof nextPoint.lat !== 'number' || typeof nextPoint.lng !== 'number') {
+        console.error('坐标点数据无效，停止动画循环');
+        animationState.isRunning = false;
+        updateUIState();
+        return;
+    }
+    
     const currentLat = lerp(currentPoint.lat, nextPoint.lat, t);
     const currentLng = lerp(currentPoint.lng, nextPoint.lng, t);
     
+    // 边界检查：确保插值结果有效
+    if (!isFinite(currentLat) || !isFinite(currentLng)) {
+        console.error('插值坐标无效，停止动画循环');
+        animationState.isRunning = false;
+        updateUIState();
+        return;
+    }
+    
     // 更新车辆位置（使用插值坐标）
-    updateVehiclePosition(currentLat, currentLng, currentPoint);
+    try {
+        updateVehiclePosition(currentLat, currentLng, currentPoint);
+    } catch (error) {
+        console.error('更新车辆位置失败:', error);
+        animationState.isRunning = false;
+        updateUIState();
+        return;
+    }
     
     // 检查动画是否结束
     if (currentIndex >= totalPoints && segmentProgress >= 1) {
@@ -1057,13 +1308,18 @@ function animationLoop(timestamp) {
         // 停止地图切换定时器
         stopMapSwitchTimer();
         updateUIState();
-        const statusText = document.getElementById('animation-status');
-        if (statusText) {
-            statusText.textContent = '行程结束！';
+        if (cachedStatusText) {
+            cachedStatusText.textContent = '行程结束！';
         }
     } else {
         // 如果动画正在运行，或者需要继续执行（比如语音播报完成后），则继续请求下一帧
-        animationState.animationId = requestAnimationFrame(animationLoop);
+        try {
+            animationState.animationId = requestAnimationFrame(animationLoop);
+        } catch (error) {
+            console.error('请求下一帧动画失败:', error);
+            animationState.isRunning = false;
+            updateUIState();
+        }
     }
 }
 
@@ -1072,6 +1328,7 @@ function startMapSwitchTimer() {
     // 清除现有定时器
     if (animationState.mapSwitchTimer) {
         clearInterval(animationState.mapSwitchTimer);
+        animationState.mapSwitchTimer = null;
     }
     
     // 记录定时器启动时间
@@ -1092,10 +1349,6 @@ function startMapSwitchTimer() {
                 // 卫星地图显示8秒
                 animationState.mapSwitchInterval = 8000;
             }
-            
-            // 重新设置定时器间隔
-            clearInterval(animationState.mapSwitchTimer);
-            animationState.mapSwitchTimer = setInterval(arguments.callee, animationState.mapSwitchInterval);
         }
     }, animationState.mapSwitchInterval);
 }
@@ -1108,39 +1361,66 @@ function stopMapSwitchTimer() {
     }
 }
 
-// 开始动画
+/**
+ * 开始动画
+ */
 function startAnimation() {
+    // 边界检查：确保动画状态有效
+    if (!animationState || typeof animationState !== 'object') {
+        console.error('动画状态无效，无法开始动画');
+        return;
+    }
+    
     const routeData = getCurrentRouteData();
-    if (routeData.length === 0) {
+    
+    // 边界检查：确保路线数据有效
+    if (!Array.isArray(routeData) || routeData.length === 0) {
         alert('请先选择一个有效的起点！');
         return;
     }
     
-    // 重置动画状态
-    animationState.totalPoints = routeData.length;
-    animationState.currentIndex = 0;
-    animationState.startTime = null;
-    animationState.pausedTime = 0;
-    animationState.currentSegmentStartTime = null;
-    animationState.isRunning = true;
-    animationState.isPaused = false;
-    animationState.dayCounter = 1; // 重置天数计数器
+    // 边界检查：确保地图实例有效
+    if (!map || typeof map.setView !== 'function') {
+        console.error('地图实例无效，无法开始动画');
+        return;
+    }
     
-    // 启动地图切换定时器
-    startMapSwitchTimer();
-    
-    // 初始化车辆和轨迹
-    createVehicleMarker();
-    createTrailLine();
-    
-    // 地图放大到合适比例（根据当前路线和车辆位置）
-    const currentPoint = routeData[animationState.currentIndex];
-    map.setView([currentPoint.lat, currentPoint.lng], 8, { 
-        animate: true,
-        duration: 1
-    });
-    
-    // 立即播报第一个地点的语音
+    try {
+        // 清除路线数据缓存，确保获取最新数据
+        clearRouteCache();
+        
+        // 重置动画状态
+        animationState.totalPoints = routeData.length;
+        animationState.currentIndex = 0;
+        animationState.startTime = null;
+        animationState.pausedTime = 0;
+        animationState.currentSegmentStartTime = null;
+        animationState.isRunning = true;
+        animationState.isPaused = false;
+        animationState.dayCounter = 1; // 重置天数计数器
+        
+        // 启动地图切换定时器
+        startMapSwitchTimer();
+        
+        // 初始化车辆和轨迹
+        createVehicleMarker();
+        createTrailLine();
+        
+        // 地图放大到合适比例（根据当前路线和车辆位置）
+        const currentPoint = routeData[animationState.currentIndex];
+        
+        // 边界检查：确保当前点有效
+        if (!currentPoint || typeof currentPoint.lat !== 'number' || typeof currentPoint.lng !== 'number') {
+            console.error('起始点坐标无效，无法开始动画');
+            return;
+        }
+        
+        map.setView([currentPoint.lat, currentPoint.lng], 8, { 
+            animate: true,
+            duration: 1
+        });
+        
+        // 立即播报第一个地点的语音
         if (currentPoint && currentPoint.name) {
             // 更新车辆弹出窗口内容
             if (animationState.vehicleMarker) {
@@ -1156,9 +1436,8 @@ function startAnimation() {
             }
             
             // 更新状态文本显示当前地点信息
-            const statusText = document.getElementById('animation-status');
-            if (statusText && currentPoint) {
-                statusText.textContent = `行驶中 - ${currentPoint.name} (${animationState.currentIndex + 1}/${animationState.totalPoints})`;
+            if (cachedStatusText && currentPoint) {
+                cachedStatusText.textContent = `行驶中 - ${currentPoint.name} (${animationState.currentIndex + 1}/${animationState.totalPoints})`;
             }
             
             // 暂停动画，等待语音播报完成
@@ -1172,141 +1451,256 @@ function startAnimation() {
             // 更新地点信息显示
             updateLocationInfoDisplay(currentPoint.name);
         } else {
-        animationState.isRunning = true;
+            animationState.isRunning = true;
+            animationState.isPaused = false;
+            
+            try {
+                animationState.animationId = requestAnimationFrame(animationLoop);
+            } catch (error) {
+                console.error('开始动画循环失败:', error);
+                animationState.isRunning = false;
+            }
+            
+            // 更新UI状态
+            updateUIState();
+        }
+    } catch (error) {
+        console.error('开始动画过程中发生错误:', error);
+        animationState.isRunning = false;
         animationState.isPaused = false;
-        animationState.animationId = requestAnimationFrame(animationLoop);
-        
-        // 更新UI状态
         updateUIState();
     }
 }
 
-// 暂停动画
+/**
+ * 暂停动画
+ */
 function pauseAnimation() {
+    // 边界检查：确保动画状态有效
+    if (!animationState || typeof animationState !== 'object') {
+        console.error('动画状态无效，无法暂停动画');
+        return;
+    }
+    
     // 如果动画正在运行，或者正在语音播报期间（isRunning为false但语音正在播放），都可以暂停
     if (animationState.isRunning || (!animationState.isRunning && window.speechSynthesis.speaking)) {
-        animationState.isRunning = false;
-        animationState.isPaused = true;
-        animationState.pausedTime += performance.now() - animationState.startTime;
-        animationState.startTime = 0;
+        try {
+            animationState.isRunning = false;
+            animationState.isPaused = true;
+            
+            // 计算暂停时间
+            if (animationState.startTime) {
+                animationState.pausedTime += performance.now() - animationState.startTime;
+                animationState.startTime = 0;
+            }
+            
+            // 停止语音播报
+            if (window.speechSynthesis && window.speechSynthesis.speaking) {
+                try {
+                    window.speechSynthesis.cancel();
+                } catch (error) {
+                    console.warn('停止语音播报失败:', error);
+                }
+            }
+            
+            // 停止地图切换定时器
+            stopMapSwitchTimer();
+            
+            // 停止动画帧
+            if (animationState.animationId) {
+                try {
+                    cancelAnimationFrame(animationState.animationId);
+                    animationState.animationId = null;
+                } catch (error) {
+                    console.warn('取消动画帧失败:', error);
+                }
+            }
+            
+            updateUIState();
+        } catch (error) {
+            console.error('暂停动画过程中发生错误:', error);
+        }
+    }
+}
+
+/**
+ * 继续动画
+ */
+function resumeAnimation() {
+    // 边界检查：确保动画状态有效
+    if (!animationState || typeof animationState !== 'object') {
+        console.error('动画状态无效，无法继续动画');
+        return;
+    }
+    
+    if (animationState.isPaused) {
+        try {
+            animationState.isRunning = true;
+            animationState.isPaused = false;
+            
+            // 计算继续时间
+            if (animationState.pausedTime > 0) {
+                animationState.startTime = performance.now() - animationState.pausedTime;
+                animationState.pausedTime = 0;
+            }
+            
+            animationState.currentSegmentStartTime = null; // 重置当前段起始时间
+            
+            // 重新启动地图切换定时器
+            startMapSwitchTimer();
+            
+            // 重新开始动画循环
+            try {
+                animationState.animationId = requestAnimationFrame(animationLoop);
+            } catch (error) {
+                console.error('重新开始动画循环失败:', error);
+                animationState.isRunning = false;
+                animationState.isPaused = true;
+            }
+            
+            updateUIState();
+        } catch (error) {
+            console.error('继续动画过程中发生错误:', error);
+            animationState.isRunning = false;
+            animationState.isPaused = true;
+            updateUIState();
+        }
+    }
+}
+
+/**
+ * 重置动画
+ */
+function resetAnimation() {
+    // 边界检查：确保动画状态有效
+    if (!animationState || typeof animationState !== 'object') {
+        console.error('动画状态无效，无法重置动画');
+        return;
+    }
+    
+    try {
+        // 清除路线数据缓存，确保下次获取最新数据
+        clearRouteCache();
         
-        // 停止语音播报
-        if (window.speechSynthesis.speaking) {
-            window.speechSynthesis.cancel();
+        // 停止动画
+        if (animationState.animationId) {
+            try {
+                cancelAnimationFrame(animationState.animationId);
+                animationState.animationId = null;
+            } catch (error) {
+                console.warn('取消动画帧失败:', error);
+            }
         }
         
         // 停止地图切换定时器
         stopMapSwitchTimer();
         
-        if (animationState.animationId) {
-            cancelAnimationFrame(animationState.animationId);
+        // 重置状态
+        animationState.isRunning = false;
+        animationState.isPaused = false;
+        animationState.currentIndex = 0;
+        animationState.startTime = 0;
+        animationState.pausedTime = 0;
+        animationState.currentSegmentStartTime = null;
+        animationState.dayCounter = 1; // 重置天数计数器
+        
+        // 更新UI
+        updateUIState();
+        
+        // 重置进度条
+        if (cachedProgressBar) {
+            cachedProgressBar.style.width = '0%';
         }
         
-        updateUIState();
+        // 重置状态文本
+        if (cachedStatusText) {
+            cachedStatusText.textContent = '准备就绪';
+        }
+        
+        // 移除现有的车辆和轨迹
+        if (animationState.vehicleMarker) {
+            try {
+                if (map && typeof map.removeLayer === 'function') {
+                    map.removeLayer(animationState.vehicleMarker);
+                }
+                animationState.vehicleMarker = null;
+            } catch (error) {
+                console.warn('移除车辆标记失败:', error);
+            }
+        }
+        
+        if (animationState.trailLine) {
+            try {
+                if (map && typeof map.removeLayer === 'function') {
+                    map.removeLayer(animationState.trailLine);
+                }
+                animationState.trailLine = null;
+            } catch (error) {
+                console.warn('移除轨迹线失败:', error);
+            }
+        }
+        
+        // 初始化车辆和轨迹（如果有选择起点）
+        const routeData = getCurrentRouteData();
+        if (routeData.length > 0) {
+            createVehicleMarker();
+            createTrailLine();
+            const startPoint = routeData[0];
+            
+            // 边界检查：确保起始点有效
+            if (startPoint && typeof startPoint.lat === 'number' && typeof startPoint.lng === 'number') {
+                updateVehiclePosition(startPoint.lat, startPoint.lng, startPoint);
+            }
+        }
+    } catch (error) {
+        console.error('重置动画过程中发生错误:', error);
     }
 }
 
-// 继续动画
-function resumeAnimation() {
-    if (animationState.isPaused) {
-        animationState.isRunning = true;
-        animationState.isPaused = false;
-        animationState.startTime = performance.now() - animationState.pausedTime;
-        animationState.pausedTime = 0;
-        animationState.currentSegmentStartTime = null; // 重置当前段起始时间
-        
-        // 重新启动地图切换定时器
-        startMapSwitchTimer();
-        
-        // 重新开始动画循环
-        animationState.animationId = requestAnimationFrame(animationLoop);
-        
-        updateUIState();
-    }
-}
-
-// 重置动画
-function resetAnimation() {
-    // 停止动画
-    if (animationState.animationId) {
-        cancelAnimationFrame(animationState.animationId);
-    }
-    
-    // 停止地图切换定时器
-    stopMapSwitchTimer();
-    
-    // 重置状态
-    animationState.isRunning = false;
-    animationState.isPaused = false;
-    animationState.currentIndex = 0;
-    animationState.startTime = 0;
-    animationState.pausedTime = 0;
-    animationState.currentSegmentStartTime = null;
-    animationState.dayCounter = 1; // 重置天数计数器
-    
-    // 更新UI
-    updateUIState();
-    
-    // 重置进度条
-    const progressBar = document.getElementById('progress-fill');
-    if (progressBar) {
-        progressBar.style.width = '0%';
-    }
-    
-    // 重置状态文本
-    const statusText = document.getElementById('animation-status');
-    if (statusText) {
-        statusText.textContent = '准备就绪';
-    }
-    
-    // 移除现有的车辆和轨迹
-    if (animationState.vehicleMarker) {
-        map.removeLayer(animationState.vehicleMarker);
-        animationState.vehicleMarker = null;
-    }
-    
-    if (animationState.trailLine) {
-        map.removeLayer(animationState.trailLine);
-        animationState.trailLine = null;
-    }
-    
-    // 初始化车辆和轨迹（如果有选择起点）
-    const routeData = getCurrentRouteData();
-    if (routeData.length > 0) {
-        createVehicleMarker();
-        createTrailLine();
-        const startPoint = routeData[0];
-        updateVehiclePosition(startPoint.lat, startPoint.lng, startPoint);
-    }
-}
-
-// 更新UI状态
+/**
+ * 更新UI状态
+ */
 function updateUIState() {
-    const startBtn = document.getElementById('start-animation');
-    const pauseBtn = document.getElementById('pause-animation');
-    const resetBtn = document.getElementById('reset-animation');
-    const routeSelect = document.getElementById('route-select');
-    
-    // 检查是否正在语音播报期间
-    const isSpeaking = window.speechSynthesis.speaking;
-    
-    if (startBtn) {
-        // 开始按钮在动画运行且未暂停时禁用，其他情况可用
-        startBtn.disabled = animationState.isRunning && !animationState.isPaused;
+    // 边界检查：确保动画状态有效
+    if (!animationState || typeof animationState !== 'object') {
+        console.error('动画状态无效，无法更新UI状态');
+        return;
     }
     
-    if (pauseBtn) {
-        // 暂停按钮在动画运行且未暂停时可用，或者在语音播报期间也可用
-        pauseBtn.disabled = !((animationState.isRunning && !animationState.isPaused) || 
-                             (!animationState.isRunning && isSpeaking && !animationState.isPaused));
-    }
-    
-    if (resetBtn) {
-        resetBtn.disabled = !animationState.vehicleMarker;
-    }
-    
-    if (routeSelect) {
-        routeSelect.disabled = animationState.isRunning && !animationState.isPaused;
+    try {
+        const startBtn = document.getElementById('start-animation');
+        const pauseBtn = document.getElementById('pause-animation');
+        const resetBtn = document.getElementById('reset-animation');
+        const routeSelect = document.getElementById('route-select');
+        
+        // 检查是否正在语音播报期间
+        let isSpeaking = false;
+        if (window.speechSynthesis && typeof window.speechSynthesis.speaking === 'boolean') {
+            isSpeaking = window.speechSynthesis.speaking;
+        }
+        
+        if (startBtn) {
+            // 开始按钮在动画运行且未暂停时禁用，其他情况可用
+            startBtn.disabled = animationState.isRunning && !animationState.isPaused;
+        }
+        
+        if (pauseBtn) {
+            // 暂停按钮在动画运行且未暂停时可用，或者在语音播报期间也可用
+            pauseBtn.disabled = !((animationState.isRunning && !animationState.isPaused) || 
+                                 (!animationState.isRunning && isSpeaking && !animationState.isPaused));
+        }
+        
+        if (resetBtn) {
+            // 边界检查：确保vehicleMarker属性存在
+            const hasVehicleMarker = animationState.vehicleMarker !== null && animationState.vehicleMarker !== undefined;
+            resetBtn.disabled = !hasVehicleMarker;
+        }
+        
+        if (routeSelect) {
+            routeSelect.disabled = animationState.isRunning && !animationState.isPaused;
+        }
+    } catch (error) {
+        console.error('更新UI状态过程中发生错误:', error);
     }
 }
 

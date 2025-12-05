@@ -29,8 +29,6 @@ function normalizeLocationInfo(location) {
         location.style = generateDefaultStyle(location);
     }
     
-    // 海拔信息现在直接从地点对象中获取，无需额外处理
-    
     return location;
 }
 
@@ -77,7 +75,7 @@ function initLocationInfoDatabase() {
         locationInfoDatabase.set(location.name, normalizedLocation);
     });
     
-    console.log('地点信息数据库初始化完成，共包含', locationInfoDatabase.size, '个地点');
+    // 地点信息数据库初始化完成
 }
 
 // 获取地点信息的函数
@@ -100,8 +98,6 @@ function getLocationInfo(locationName) {
         food: '暂无详细信息',
         attractions: []
     };
-    
-    // 海拔信息现在直接从地点对象中获取
     
     return locationInfo;
 }
