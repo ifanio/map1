@@ -82,10 +82,10 @@ const animationState = {
     currentMapType: 'satellite',
     mapSwitchInterval: MAP_CONFIG.MAP_SWITCH_INTERVALS.SATELLITE,
     currentVoiceIndex: 0,
-    enableVoiceBroadcast: true, // 语音播报开关
-    enableMapSwitch: false, // 地图自动切换开关
-    enableAutoRestart: true, // 自动继续模拟行程开关
-    autoRestartDelay: 3000 // 自动继续延迟时间（毫秒）
+    enableVoiceBroadcast: true,
+    enableMapSwitch: false,
+    enableAutoRestart: true,
+    autoRestartDelay: 3000
 };
 
 /**
@@ -230,24 +230,7 @@ function createMarkerIcon(locationName, routeKey) {
     });
 }
 
-/**
- * 创建标记点弹出窗口内容
- * @param {Object} location - 地点数据对象
- * @param {string} routeKey - 路线标识符
- * @returns {string} 弹出窗口HTML内容
- */
-function createMarkerPopupContent(location, routeKey) {
-    const config = ROUTE_CONFIG[routeKey.toUpperCase()];
-    const color = config ? config.color : '#666666';
-    
-    return `
-        <div style="font-size: 14px; font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif; background-color: #f8f9fa; border: 1px solid #bdc3c7; border-radius: 8px; padding: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-            <div style="font-size: 16px; font-weight: bold; color: ${color}; border-bottom: 1px solid #ecf0f1; padding-bottom: 5px; margin-bottom: 5px; text-align: center;">${location.name}</div>
-            <div style="margin-bottom: 3px;">省份: <span style="color: #2c3e50;">${location.province}</span></div>
-            <div>坐标: ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}</div>
-        </div>
-    `;
-}
+
 
 /**
  * 处理标记点点击事件
@@ -306,9 +289,6 @@ function addMarkers(locations, routeKey) {
         
         // 设置自定义图标
         marker.setIcon(createMarkerIcon(location.name, routeKey));
-        
-        // 绑定弹出窗口
-        marker.bindPopup(createMarkerPopupContent(location, routeKey));
         
         // 添加点击事件
         marker.on('click', () => handleMarkerClick(location, routeKey));
@@ -718,9 +698,9 @@ function getCurrentRouteData() {
             
             // 先走完G228到东兴，再连接G219东兴继续，然后连接到G331白沙湖，最后连接到G228丹东
             const g228Remaining = fullRouteData.slice(startIndex);
-            const g219Reversed = getReversedRoute(G219Locations, 'g219'); // G219顺时针需要反转（当前G219Locations数组已调整为东兴-喀纳斯方向）
-            const g331Reversed = getReversedRoute(G331Locations, 'g331'); // G331顺时针需要反转
-            const g228Original = G228Locations; // 包含G228完整路线，确保丹东-庄河连接
+            const g219Reversed = getReversedRoute(G219Locations, 'g219');
+            const g331Reversed = getReversedRoute(G331Locations, 'g331');
+            const g228Original = G228Locations;
             
             // 返回完整的顺时针路线：G228剩余部分 → G219 → G331 → G228
             return [...g228Remaining, ...g219Reversed.slice(1), ...g331Reversed.slice(1), ...g228Original];
@@ -730,22 +710,22 @@ function getCurrentRouteData() {
             
             if (currentLocation.name === '喀纳斯') {
                 // 如果到达G219终点喀纳斯，连接到G331白沙湖并继续G331路线
-                const g331Reversed = getReversedRoute(G331Locations, 'g331'); // G331顺时针需要反转
+                const g331Reversed = getReversedRoute(G331Locations, 'g331');
                 const heiheIndex = g331Reversed.findIndex(loc => loc.name === '白沙湖');
                 if (heiheIndex !== -1) {
                     // 从白沙湖开始继续G331路线，然后连接到G228
                 const g331Route = g331Reversed.slice(heiheIndex);
-                const g228Route = G228Locations; // 包含G228完整路线，确保丹东-庄河连接
+                const g228Route = G228Locations;
                 return [...g331Route, ...g228Route];
                 }
             } else {
                 // 先走完G219到喀纳斯，再连接G331白沙湖继续，然后连接到G228
                 const g219Remaining = fullRouteData.slice(startIndex);
-                const g331Reversed = getReversedRoute(G331Locations, 'g331'); // G331顺时针需要反转
+                const g331Reversed = getReversedRoute(G331Locations, 'g331');
                 const heiheIndex = g331Reversed.findIndex(loc => loc.name === '白沙湖');
                 if (heiheIndex !== -1) {
                     const g331Route = g331Reversed.slice(heiheIndex);
-                    const g228Route = G228Locations; // 包含G228完整路线，确保丹东-庄河连接
+                    const g228Route = G228Locations;
                     return [...g219Remaining, ...g331Route, ...g228Route];
                 }
             }
@@ -759,7 +739,7 @@ function getCurrentRouteData() {
             } else {
                 // 先走完G331到丹东，再连接G228丹东继续
                 const g331Remaining = fullRouteData.slice(startIndex);
-                return [...g331Remaining, ...G228Locations]; // 包含G228完整路线，确保丹东-庄河连接
+                return [...g331Remaining, ...G228Locations];
             }
         }
     }
@@ -831,14 +811,7 @@ function createVehicleMarker() {
         title: '模拟车辆'
     }).addTo(map);
     
-    // 添加中国风车辆弹出信息
-    animationState.vehicleMarker.bindPopup(`
-        <div style="text-align: center; font-family: 'SimSun', 'STSong', '宋体', serif; background-color: #f8f0e3; border: 1px solid #d4a017; border-radius: 4px; padding: 10px; box-shadow: 3px 3px 6px rgba(0,0,0,0.2);">
-            <div style="font-size: 16px; font-weight: bold; color: #b22222; margin-bottom: 5px;">🚗 ${startPoint.name}</div>
-            <div style="margin-bottom: 3px; color: black;">${startPoint.province}</div>
-            <div style="color: black;">进度: 1/${animationState.totalPoints}</div>
-        </div>
-    `);
+
 }
 
 // 创建轨迹线
@@ -872,17 +845,7 @@ function updateVehiclePosition(currentLat, currentLng, currentPoint) {
     if (animationState.vehicleMarker) {
         animationState.vehicleMarker.setLatLng([currentLat, currentLng]);
         
-        // 更新车辆弹出信息
-        animationState.vehicleMarker.setPopupContent(`
-            <div style="text-align: center;">
-                <h4 style="color: #b22222; margin-bottom: 5px;">🚗 ${currentPoint.name}</h4>
-                <p style="color: black; margin-bottom: 3px;">${currentPoint.province}</p>
-                <p style="color: black;">进度: ${animationState.currentIndex + 1}/${animationState.totalPoints}</p>
-            </div>
-        `);
-        
-        // 打开弹出信息
-        animationState.vehicleMarker.openPopup();
+
     }
     
     // 更新轨迹线（添加当前插值点）
@@ -1187,8 +1150,6 @@ function speakLocation(location) {
     function extractKeyCulturePoint(cultureInfo) {
         let keyPoint = cultureInfo;
         
-
-        
         // 如果没有找到包含关键词的句子，使用整个描述的前40个字符
         if (keyPoint === cultureInfo && keyPoint.length > 0) {
             const sentences = keyPoint.split(/[。！？]/);
@@ -1299,16 +1260,7 @@ function animationLoop(timestamp) {
                     cachedStatusText.textContent = `行驶中 - ${currentPoint.name} (${animationState.currentIndex + 1}/${animationState.totalPoints})`;
                 }
                 
-                // 立即更新车辆弹出窗口内容，确保语音播报开始时数据已更新
-                if (animationState.vehicleMarker) {
-                    animationState.vehicleMarker.setPopupContent(`
-                        <div style="text-align: center;">
-                            <h4 style="color: #b22222; margin-bottom: 5px;">🚗 ${currentPoint.name}</h4>
-                            <p style="color: black; margin-bottom: 3px;">${currentPoint.province}</p>
-                            <p style="color: black;">进度: ${animationState.currentIndex + 1}/${animationState.totalPoints}</p>
-                        </div>
-                    `);
-                }
+
                 
                 // 更新地点信息显示
                 updateLocationInfoDisplay(currentPoint.name);
@@ -1561,15 +1513,7 @@ function startAnimation() {
         if (currentPoint && currentPoint.name) {
             // 更新车辆弹出窗口内容
             if (animationState.vehicleMarker) {
-                animationState.vehicleMarker.setPopupContent(`
-                    <div style="text-align: center;">
-                        <h4 style="color: #b22222; margin-bottom: 5px;">🚗 ${currentPoint.name}</h4>
-                        <p style="color: black; margin-bottom: 3px;">${currentPoint.province}</p>
-                        <p style="color: black;">进度: ${animationState.currentIndex + 1}/${animationState.totalPoints}</p>
-                    </div>
-                `);
-                // 确保弹窗打开显示
-                animationState.vehicleMarker.openPopup();
+
             }
             
             // 更新状态文本显示当前地点信息

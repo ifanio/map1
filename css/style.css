@@ -1103,21 +1103,7 @@ footer p {
     transition: var(--transition);
 }
 
-/* 中国风弹窗样式 */
-.leaflet-popup-content-wrapper {
-    border-radius: 0;
-    box-shadow: var(--shadow-lg);
-    border: 2px solid var(--accent-color);
-    background: var(--light-color);
-    background-image: var(--paper-texture);
-    opacity: 0.95;
-}
 
-.leaflet-popup-tip {
-    background: var(--primary-color);
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--accent-color);
-}
 
 /* 响应式布局 */
 @media (max-width: 768px) {
@@ -1290,24 +1276,7 @@ footer p {
     filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
 }
 
-/* 现代化弹窗样式 */
-.leaflet-popup-content-wrapper {
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-lg);
-    border: none;
-    background: linear-gradient(135deg, var(--white-color), var(--light-gray));
-    opacity: 0.5;
-}
 
-.leaflet-popup-content {
-    margin: 1rem;
-    font-family: inherit;
-}
-
-.leaflet-popup-tip {
-    background: var(--light-gray);
-    box-shadow: var(--shadow-sm);
-}
 
 /* 路线样式增强 */
 .route-g219 {
