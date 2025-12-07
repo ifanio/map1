@@ -83,7 +83,9 @@ const animationState = {
     mapSwitchInterval: MAP_CONFIG.MAP_SWITCH_INTERVALS.SATELLITE,
     currentVoiceIndex: 0,
     enableVoiceBroadcast: true, // 语音播报开关
-    enableMapSwitch: true // 地图自动切换开关
+    enableMapSwitch: true, // 地图自动切换开关
+    enableAutoRestart: true, // 自动继续模拟行程开关
+    autoRestartDelay: 3000 // 自动继续延迟时间（毫秒）
 };
 
 /**
@@ -617,6 +619,15 @@ function initRouteAnimationControls() {
                     animationState.mapSwitchTimer = null;
                 }
             }
+        });
+    }
+    
+    // 自动继续模拟开关事件
+    const autoRestartCheckbox = document.getElementById('auto-restart');
+    if (autoRestartCheckbox) {
+        autoRestartCheckbox.addEventListener('change', function() {
+            animationState.enableAutoRestart = this.checked;
+            console.log('自动继续模拟:', this.checked ? '开启' : '关闭');
         });
     }
     
@@ -1394,6 +1405,13 @@ function animationLoop(timestamp) {
         if (cachedStatusText) {
             cachedStatusText.textContent = '行程结束！';
         }
+        
+        // 检查是否启用自动继续功能
+        if (animationState.enableAutoRestart) {
+            console.log('行程结束，准备自动继续模拟行程...');
+            // 延迟后自动继续模拟行程
+            setTimeout(autoRestartAnimation, animationState.autoRestartDelay);
+        }
     } else {
         // 如果动画正在运行，或者需要继续执行（比如语音播报完成后），则继续请求下一帧
         try {
@@ -1785,6 +1803,81 @@ function resetAnimation() {
         }
     } catch (error) {
         console.error('重置动画过程中发生错误:', error);
+    }
+}
+
+/**
+ * 自动继续模拟行程
+ */
+function autoRestartAnimation() {
+    // 边界检查：确保动画状态有效
+    if (!animationState || typeof animationState !== 'object') {
+        console.error('动画状态无效，无法自动继续');
+        return;
+    }
+    
+    // 检查是否已经手动停止或暂停
+    if (animationState.isPaused || animationState.isRunning) {
+        console.log('动画已暂停或正在运行，跳过自动继续');
+        return;
+    }
+    
+    console.log('开始自动继续模拟行程...');
+    
+    try {
+        // 重置动画状态，但保留当前路线和方向设置
+        animationState.currentIndex = 0;
+        animationState.startTime = 0;
+        animationState.pausedTime = 0;
+        animationState.currentSegmentStartTime = null;
+        animationState.dayCounter = 1; // 重置天数计数器
+        animationState.isRunning = true;
+        animationState.isPaused = false;
+        
+        // 清除路线数据缓存，确保获取最新数据
+        clearRouteCache();
+        
+        // 获取当前路线数据
+        const routeData = getCurrentRouteData();
+        
+        // 边界检查：确保路线数据有效
+        if (!Array.isArray(routeData) || routeData.length === 0) {
+            console.error('路线数据无效，无法自动继续');
+            return;
+        }
+        
+        animationState.totalPoints = routeData.length;
+        
+        // 重置进度条
+        if (cachedProgressBar) {
+            cachedProgressBar.style.width = '0%';
+        }
+        
+        // 更新状态文本
+        if (cachedStatusText) {
+            cachedStatusText.textContent = '自动继续中...';
+        }
+        
+        // 重新启动地图切换定时器
+        startMapSwitchTimer();
+        
+        // 重新开始动画循环
+        try {
+            animationState.animationId = requestAnimationFrame(animationLoop);
+            console.log('自动继续成功启动');
+        } catch (error) {
+            console.error('自动继续动画循环失败:', error);
+            animationState.isRunning = false;
+            updateUIState();
+        }
+        
+        // 更新UI状态
+        updateUIState();
+        
+    } catch (error) {
+        console.error('自动继续过程中发生错误:', error);
+        animationState.isRunning = false;
+        updateUIState();
     }
 }
 
