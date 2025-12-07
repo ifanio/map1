@@ -83,7 +83,7 @@ const animationState = {
     mapSwitchInterval: MAP_CONFIG.MAP_SWITCH_INTERVALS.SATELLITE,
     currentVoiceIndex: 0,
     enableVoiceBroadcast: true, // 语音播报开关
-    enableMapSwitch: true, // 地图自动切换开关
+    enableMapSwitch: false, // 地图自动切换开关
     enableAutoRestart: true, // 自动继续模拟行程开关
     autoRestartDelay: 3000 // 自动继续延迟时间（毫秒）
 };
@@ -1443,19 +1443,25 @@ function startMapSwitchTimer() {
     
     // 启动新的定时器，根据当前地图类型设置不同的切换间隔
     animationState.mapSwitchTimer = setInterval(function() {
-        // 检查是否应该切换地图（动画运行中且未暂停，或者语音播报期间）
+        // 检查是否应该切换地图（动画运行中且未暂停，或者语音播报期间，或者动画已开始但正在语音播报）
         if ((animationState.isRunning && !animationState.isPaused) || 
-            (!animationState.isRunning && window.speechSynthesis.speaking)) {
+            (!animationState.isRunning && window.speechSynthesis.speaking) ||
+            (animationState.startTime !== null)) {
             // 切换地图类型
             if (animationState.currentMapType === 'satellite') {
                 switchMapType('standard');
-                // 标准地图显示5秒
-                animationState.mapSwitchInterval = 5000;
+                // 清除并重新设置定时器，使用新的间隔时间
+                clearInterval(animationState.mapSwitchTimer);
+                animationState.mapSwitchInterval = 5000; // 标准地图显示5秒
+                animationState.mapSwitchTimer = setInterval(arguments.callee, animationState.mapSwitchInterval);
             } else {
                 switchMapType('satellite');
-                // 卫星地图显示8秒
-                animationState.mapSwitchInterval = 8000;
+                // 清除并重新设置定时器，使用新的间隔时间
+                clearInterval(animationState.mapSwitchTimer);
+                animationState.mapSwitchInterval = 8000; // 卫星地图显示8秒
+                animationState.mapSwitchTimer = setInterval(arguments.callee, animationState.mapSwitchInterval);
             }
+            console.log('地图已切换至:', animationState.currentMapType, '，下次切换间隔:', animationState.mapSwitchInterval, 'ms');
         }
     }, animationState.mapSwitchInterval);
 }
