@@ -24,8 +24,8 @@ const MAP_CONFIG = {
  */
 const ROUTE_CONFIG = {
     G219: { color: '#ff8c00', name: 'G219' },
-    G331: { color: '#2ecc71', name: 'G331' },
-    G228: { color: '#3498db', name: 'G228' }
+    G331: { color: '#32cd32', name: 'G331' }, /* 柔和的草绿色 */
+G228: { color: '#1e90ff', name: 'G228' } /* 海蓝色 */
 };
 
 /**
@@ -81,7 +81,9 @@ const animationState = {
     mapSwitchTimer: null,
     currentMapType: 'satellite',
     mapSwitchInterval: MAP_CONFIG.MAP_SWITCH_INTERVALS.SATELLITE,
-    currentVoiceIndex: 0
+    currentVoiceIndex: 0,
+    enableVoiceBroadcast: true, // 语音播报开关
+    enableMapSwitch: true // 地图自动切换开关
 };
 
 /**
@@ -165,7 +167,8 @@ function createRouteLayer(locations, routeKey) {
         { 
             color: config.color,
             weight: 6, 
-            opacity: 0.9, 
+            opacity: 0.7, 
+            fillOpacity: 0.3,
             name: config.name,
             lineCap: 'round',
             lineJoin: 'round'
@@ -221,7 +224,7 @@ function createMarkerIcon(locationName, routeKey) {
     
     return L.divIcon({
         className: 'custom-div-icon',
-        html: `<div style="background-color: ${color}; color: white; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: bold; text-align: center; border: 2px solid ${color}; font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif; box-shadow: 0 2px 5px rgba(0,0,0,0.15); text-shadow: none;">${locationName}</div>`,
+        html: `<div style="background-color: ${color}; color: white; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: bold; text-align: center; border: 2px solid ${color}; font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif; box-shadow: 0 2px 5px rgba(0,0,0,0.15); text-shadow: none; opacity: 0.8;">${locationName}</div>`,
         iconAnchor: [40, 40]
     });
 }
@@ -323,9 +326,9 @@ function generateLocationsList() {
     
     // 创建按路线分类的地点列表
     const routes = [
-        { id: 'g219', name: 'G219 喀纳斯-东兴', color: '#ff8c00', locations: G219Locations },
-        { id: 'g331', name: 'G331 丹东-阿勒泰', color: '#2ecc71', locations: G331Locations },
-        { id: 'g228', name: 'G228 丹东-东兴', color: '#3498db', locations: G228Locations }
+        { id: 'g219', name: 'G219 东兴-喀纳斯', color: '#ff8c00', locations: G219Locations },
+        { id: 'g331', name: 'G331 丹东-阿勒泰', color: '#32cd32', locations: G331Locations }, /* 柔和的草绿色 */
+{ id: 'g228', name: 'G228 丹东-东兴', color: '#1e90ff', locations: G228Locations } /* 海蓝色 */
     ];
     
     routes.forEach(route => {
@@ -469,7 +472,7 @@ function getReversedRoute(routeLocations, routeName) {
 // 生成所有地点的合并列表
 function generateAllLocationsList() {
     // 按照指定方向顺序合并所有路线的地点
-    // G219: 东兴向喀纳斯方向（反转G219Locations数组）
+    // G219: 东兴向喀纳斯方向（当前G219Locations数组已调整为东兴-喀纳斯方向）
     const g219Reversed = getReversedRoute(G219Locations, 'g219');
     
     // G331: 阿勒泰向丹东方向（反转G331Locations数组）
@@ -530,6 +533,8 @@ function initRouteAnimationControls() {
     const resetBtn = document.getElementById('reset-animation');
     const progressFill = document.getElementById('progress-fill');
     const statusText = document.getElementById('animation-status');
+    const voiceBroadcastCheckbox = document.getElementById('voice-broadcast');
+    const mapSwitchCheckbox = document.getElementById('map-switch');
     
     // 起点选择事件
     if (startLocationSelect) {
@@ -584,6 +589,35 @@ function initRouteAnimationControls() {
     // 重置按钮事件
     if (resetBtn) {
         resetBtn.addEventListener('click', resetAnimation);
+    }
+    
+    // 语音播报开关事件
+    if (voiceBroadcastCheckbox) {
+        voiceBroadcastCheckbox.addEventListener('change', function() {
+            animationState.enableVoiceBroadcast = this.checked;
+            console.log('语音播报:', this.checked ? '开启' : '关闭');
+        });
+    }
+    
+    // 地图自动切换开关事件
+    if (mapSwitchCheckbox) {
+        mapSwitchCheckbox.addEventListener('change', function() {
+            animationState.enableMapSwitch = this.checked;
+            console.log('地图自动切换:', this.checked ? '开启' : '关闭');
+            
+            if (this.checked) {
+                // 如果重新开启地图自动切换，并且动画正在运行（无论是否暂停），重新启动定时器
+                if (animationState.isRunning) {
+                    startMapSwitchTimer();
+                }
+            } else {
+                // 如果关闭地图自动切换，清除当前的地图切换定时器
+                if (animationState.mapSwitchTimer) {
+                    clearTimeout(animationState.mapSwitchTimer);
+                    animationState.mapSwitchTimer = null;
+                }
+            }
+        });
     }
     
     // 初始化UI状态
@@ -641,7 +675,7 @@ function getCurrentRouteData() {
     switch (startLocation.route) {
         case 'g219':
             fullRouteData = G219Locations;
-            // G219顺时针应该是东兴向喀纳斯方向，需要反转当前顺序
+            // G219顺时针应该是东兴向喀纳斯方向（当前G219Locations数组已调整为东兴-喀纳斯方向）
             isRouteReversed = animationState.currentDirection === 'clockwise';
             break;
         case 'g331':
@@ -679,7 +713,7 @@ function getCurrentRouteData() {
             
             // 先走完G228到东兴，再连接G219东兴继续，然后连接到G331白沙湖，最后连接到G228丹东
             const g228Remaining = fullRouteData.slice(startIndex);
-            const g219Reversed = getReversedRoute(G219Locations, 'g219'); // G219顺时针需要反转
+            const g219Reversed = getReversedRoute(G219Locations, 'g219'); // G219顺时针需要反转（当前G219Locations数组已调整为东兴-喀纳斯方向）
             const g331Reversed = getReversedRoute(G331Locations, 'g331'); // G331顺时针需要反转
             const g228Original = G228Locations.slice(1); // 跳过G228丹东重复点
             
@@ -816,7 +850,8 @@ function createTrailLine() {
     animationState.trailLine = L.polyline([], {
         color: '#b22222', // 中国红
         weight: 8,
-        opacity: 0.9,
+        opacity: 0.6,
+        fillOpacity: 0.2,
         className: 'trail-line',
         lineCap: 'round',
         lineJoin: 'round',
@@ -920,6 +955,16 @@ function lerp(start, end, t) {
  * @param {Object} location - 地点信息对象
  */
 function speakLocation(location) {
+    // 检查语音播报开关状态
+    if (!animationState.enableVoiceBroadcast) {
+        console.log('语音播报已关闭，跳过播报');
+        // 直接继续动画
+        animationState.isRunning = true;
+        animationState.currentSegmentStartTime = null;
+        animationState.animationId = requestAnimationFrame(animationLoop);
+        return;
+    }
+    
     // 添加防御性检查，确保location参数有效
     if (!location || typeof location !== 'object') {
         console.warn('语音播报：location参数无效');
@@ -1271,6 +1316,9 @@ function animationLoop(timestamp) {
                 // 更新地点信息显示
                 updateLocationInfoDisplay(currentPoint.name);
                 
+                // 触发地点名称强调动画
+                triggerLocationEmphasis(currentPoint);
+                
                 // 尝试语音播报，但如果失败则继续动画
                 try {
                     speakLocation(currentPoint);
@@ -1360,6 +1408,12 @@ function animationLoop(timestamp) {
 
 // 开始地图切换定时器
 function startMapSwitchTimer() {
+    // 检查地图切换开关状态
+    if (!animationState.enableMapSwitch) {
+        console.log('地图自动切换已关闭，跳过定时器启动');
+        return;
+    }
+    
     // 清除现有定时器
     if (animationState.mapSwitchTimer) {
         clearInterval(animationState.mapSwitchTimer);
@@ -1394,6 +1448,48 @@ function stopMapSwitchTimer() {
         clearInterval(animationState.mapSwitchTimer);
         animationState.mapSwitchTimer = null;
     }
+}
+
+/**
+ * 触发地点名称强调动画
+ * @param {Object} location - 地点信息对象
+ */
+function triggerLocationEmphasis(location) {
+    if (!location || !location.name) {
+        console.warn('地点信息无效，无法触发强调动画');
+        return;
+    }
+    
+    // 查找对应的地图标记
+    const marker = findMarkerByLocation(location);
+    if (!marker) {
+        console.warn('未找到对应的地图标记:', location.name);
+        return;
+    }
+    
+    // 获取标记的DOM元素
+    const markerElement = marker.getElement();
+    if (!markerElement) {
+        console.warn('无法获取标记的DOM元素:', location.name);
+        return;
+    }
+    
+    // 获取标记内部的div元素（包含地点名称）
+    const markerDiv = markerElement.querySelector('div');
+    if (!markerDiv) {
+        console.warn('标记内部没有div元素:', location.name);
+        return;
+    }
+    
+    // 添加强调动画类
+    markerDiv.classList.add('location-emphasis');
+    
+    // 动画结束后移除类，以便下次可以重新触发
+    setTimeout(() => {
+        markerDiv.classList.remove('location-emphasis');
+    }, 800); // 动画持续800ms
+    
+    console.log('触发地点强调动画:', location.name);
 }
 
 /**

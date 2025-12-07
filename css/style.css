@@ -1150,11 +1150,58 @@ footer p {
     font-weight: bold;
     font-size: 0.9rem;
     color: var(--secondary-color);
-    background-color: var(--white-color);
+    background-color: rgba(255, 255, 255, 0.9); /* 添加透明度 */
     padding: 2px 6px;
     border-radius: 10px;
     box-shadow: var(--shadow-sm);
     text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+    transition: all 0.5s var(--bounce);
+    backdrop-filter: blur(2px); /* 添加毛玻璃效果 */
+    border: 1px solid rgba(255, 255, 255, 0.3); /* 添加半透明边框 */
+}
+
+/* 到达地点强调动画 - 增强版 */
+@keyframes locationEmphasis {
+    0% {
+        transform: scale(1);
+        box-shadow: var(--shadow-sm);
+        filter: brightness(1);
+    }
+    25% {
+        transform: scale(1.8);
+        box-shadow: 0 0 30px rgba(255, 140, 0, 0.8);
+        background-color: #ff8c00;
+        color: white;
+        z-index: 1000;
+        filter: brightness(1.2);
+    }
+    50% {
+        transform: scale(2.2);
+        box-shadow: 0 0 40px rgba(255, 0, 0, 0.9);
+        background: linear-gradient(135deg, #ff8c00, #ff4500);
+        color: white;
+        z-index: 1000;
+        filter: brightness(1.3);
+    }
+    75% {
+        transform: scale(1.8);
+        box-shadow: 0 0 25px rgba(255, 140, 0, 0.7);
+        background-color: #ff8c00;
+        color: white;
+        z-index: 1000;
+        filter: brightness(1.1);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: var(--shadow-sm);
+        filter: brightness(1);
+    }
+}
+
+.location-emphasis {
+    animation: locationEmphasis 1s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    font-weight: 900;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* 自定义图标样式 */
@@ -1207,15 +1254,15 @@ footer p {
 }
 
 .route-g331 {
-    color: var(--primary-color) !important;
-    border-color: var(--primary-color) !important;
-    filter: drop-shadow(0 2px 4px rgba(52,152,219,0.3));
+    color: #32cd32 !important; /* 柔和的草绿色 */
+    border-color: #32cd32 !important;
+    filter: drop-shadow(0 2px 4px rgba(50,205,50,0.3));
 }
 
 .route-g228 {
-    color: var(--success-color) !important;
-    border-color: var(--success-color) !important;
-    filter: drop-shadow(0 2px 4px rgba(39,174,96,0.3));
+    color: #1e90ff !important; /* 海蓝色 */
+    border-color: #1e90ff !important;
+    filter: drop-shadow(0 2px 4px rgba(30,144,255,0.3));
 }
 
 /* 中国风表单元素 */
@@ -1312,7 +1359,7 @@ input[type="checkbox"] {
     top: 100px; /* 调整位置，确保不遮挡地图缩放控件 */
     left: 20px;
     z-index: 1000;
-    width: 240px;
+    width: 220px; /* 减少宽度 */
     transition: all 0.3s ease;
 }
 
@@ -1322,7 +1369,7 @@ input[type="checkbox"] {
     align-items: center;
     background: linear-gradient(135deg, var(--primary-color), #9a2323);
     color: var(--white-color);
-    padding: 10px 15px;
+    padding: 8px 12px; /* 减少内边距 */
     cursor: pointer;
     transition: all 0.3s ease;
     /* 中国风边框装饰 */
@@ -1344,9 +1391,9 @@ input[type="checkbox"] {
 
 .animation-header h3 {
     margin: 0;
-    font-size: 1rem;
+    font-size: 0.9rem; /* 减小字体大小 */
     font-weight: 700;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px; /* 减少字间距 */
     text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
@@ -1376,7 +1423,7 @@ input[type="checkbox"] {
 .animation-control-panel {
     background: linear-gradient(135deg, var(--white-color), var(--light-gray));
     border-radius: 0 0 12px 12px;
-    padding: 15px;
+    padding: 12px; /* 减少内边距 */
     box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
     border: 2px solid var(--medium-gray);
     border-top: none;
@@ -1395,15 +1442,15 @@ input[type="checkbox"] {
 }
 
 .animation-control-panel .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 10px; /* 减少间距 */
 }
 
 .animation-control-panel label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 3px; /* 减少间距 */
     font-weight: 700;
     color: var(--primary-color);
-    font-size: 0.9rem;
+    font-size: 0.85rem; /* 减小字体大小 */
     text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
@@ -1486,26 +1533,26 @@ input[type="checkbox"] {
 
 .animation-control-panel .animation-buttons {
     display: flex;
-    gap: 0.3rem;
-    margin-bottom: 0.8rem;
+    gap: 0.2rem; /* 减少间距 */
+    margin-bottom: 0.6rem; /* 减少底部边距 */
     flex-wrap: wrap;
 }
 
 .animation-control-panel .btn {
     flex: 1;
-    min-width: 60px;
-    padding: 0.6rem 1rem;
-    border: 3px solid transparent;
-    border-radius: 12px;
-    font-size: 0.9rem;
+    min-width: 45px; /* 进一步减小最小宽度 */
+    padding: 0.4rem 0.6rem; /* 进一步减少内边距 */
+    border: 1.5px solid transparent; /* 进一步减小边框 */
+    border-radius: 8px; /* 进一步减小圆角 */
+    font-size: 0.75rem; /* 进一步减小字体大小 */
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-right: 0.5rem;
-    margin-bottom: 0.5rem;
-    box-shadow: var(--shadow-md);
+    letter-spacing: 0.2px; /* 进一步减少字间距 */
+    margin-right: 0.2rem; /* 进一步减少右边距 */
+    margin-bottom: 0.2rem; /* 进一步减少底部边距 */
+    box-shadow: var(--shadow-sm);
 }
 
 .animation-control-panel .btn:disabled {
@@ -1538,7 +1585,7 @@ input[type="checkbox"] {
 }
 
 .animation-control-panel .animation-info {
-    margin-top: 0.8rem;
+    margin-top: 0.5rem; /* 减少顶部边距 */
 }
 
 .animation-control-panel .progress-bar {
@@ -1838,6 +1885,8 @@ body.loaded #map::before {
     background: rgba(178, 34, 34, 0.2);
     outline: none;
     -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
 }
 
 .chinese-range-slider::-webkit-slider-thumb {
@@ -2306,4 +2355,74 @@ body.loaded #map::before {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.3);
     animation: fadeInUp 0.5s ease-out;
+}
+
+/* 复选框组样式 */
+.checkbox-group {
+    display: flex;
+    flex-direction: row; /* 改为水平排列 */
+    gap: 15px; /* 增加水平间距 */
+    margin-top: 0; /* 移除顶部边距 */
+    flex-wrap: wrap; /* 允许换行 */
+    align-items: center; /* 垂直居中对齐 */
+}
+
+.checkbox-label {
+    display: inline-flex !important; /* 使用inline-flex并强制优先级 */
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.8em; /* 进一步减小字体大小 */
+    color: var(--dark-color);
+    transition: all 0.3s var(--smooth);
+    padding: 1px 0; /* 进一步减少内边距 */
+    white-space: nowrap; /* 防止文字换行 */
+    vertical-align: middle; /* 垂直对齐 */
+}
+
+.checkbox-label:hover {
+    color: var(--primary-color);
+    transform: translateX(2px);
+}
+
+.checkbox-label input[type="checkbox"] {
+    display: none;
+}
+
+.checkmark {
+    width: 14px; /* 减小宽度 */
+    height: 14px; /* 减小高度 */
+    background-color: var(--light-gray);
+    border: 1.5px solid var(--medium-gray); /* 减小边框 */
+    border-radius: 2px; /* 减小圆角 */
+    margin-right: 6px; /* 减小右边距 */
+    position: relative;
+    transition: all 0.3s var(--smooth);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+    content: '✓';
+    color: white;
+    font-size: 10px; /* 减小字体大小 */
+    font-weight: bold;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.checkbox-label input[type="checkbox"]:focus + .checkmark {
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
+}
+
+.checkbox-label:hover .checkmark {
+    border-color: var(--primary-color);
+    transform: scale(1.05);
 }
