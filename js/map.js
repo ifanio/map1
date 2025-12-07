@@ -715,7 +715,7 @@ function getCurrentRouteData() {
             const g228Remaining = fullRouteData.slice(startIndex);
             const g219Reversed = getReversedRoute(G219Locations, 'g219'); // G219顺时针需要反转（当前G219Locations数组已调整为东兴-喀纳斯方向）
             const g331Reversed = getReversedRoute(G331Locations, 'g331'); // G331顺时针需要反转
-            const g228Original = G228Locations.slice(1); // 跳过G228丹东重复点
+            const g228Original = G228Locations; // 包含G228完整路线，确保丹东-庄河连接
             
             // 返回完整的顺时针路线：G228剩余部分 → G219 → G331 → G228
             return [...g228Remaining, ...g219Reversed.slice(1), ...g331Reversed.slice(1), ...g228Original];
@@ -729,9 +729,9 @@ function getCurrentRouteData() {
                 const heiheIndex = g331Reversed.findIndex(loc => loc.name === '白沙湖');
                 if (heiheIndex !== -1) {
                     // 从白沙湖开始继续G331路线，然后连接到G228
-                    const g331Route = g331Reversed.slice(heiheIndex);
-                    const g228Route = G228Locations.slice(1); // 跳过G228丹东重复点
-                    return [...g331Route, ...g228Route];
+                const g331Route = g331Reversed.slice(heiheIndex);
+                const g228Route = G228Locations; // 包含G228完整路线，确保丹东-庄河连接
+                return [...g331Route, ...g228Route];
                 }
             } else {
                 // 先走完G219到喀纳斯，再连接G331白沙湖继续，然后连接到G228
@@ -740,7 +740,7 @@ function getCurrentRouteData() {
                 const heiheIndex = g331Reversed.findIndex(loc => loc.name === '白沙湖');
                 if (heiheIndex !== -1) {
                     const g331Route = g331Reversed.slice(heiheIndex);
-                    const g228Route = G228Locations.slice(1); // 跳过G228丹东重复点
+                    const g228Route = G228Locations; // 包含G228完整路线，确保丹东-庄河连接
                     return [...g219Remaining, ...g331Route, ...g228Route];
                 }
             }
@@ -754,7 +754,7 @@ function getCurrentRouteData() {
             } else {
                 // 先走完G331到丹东，再连接G228丹东继续
                 const g331Remaining = fullRouteData.slice(startIndex);
-                return [...g331Remaining, ...G228Locations.slice(1)]; // 跳过G228丹东重复点
+                return [...g331Remaining, ...G228Locations]; // 包含G228完整路线，确保丹东-庄河连接
             }
         }
     }
