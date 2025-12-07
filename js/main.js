@@ -10,8 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // 添加页面加载完成的标识
     document.body.classList.add('loaded');
     
-    console.log('中国边境线地图完成');
-    
     // 地点信息面板关闭按钮功能
     const closeInfoButton = document.getElementById('close-info');
     const locationInfoPanel = document.getElementById('location-info');

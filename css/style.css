@@ -331,8 +331,9 @@ header p {
 /* 面板头部样式 - 现代风格 */
 .panel-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
+    gap: 10px;
     padding: 10px 15px;
     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     color: var(--white-color);
@@ -807,8 +808,9 @@ footer p {
 
 .location-info-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
+    gap: 10px;
     margin-bottom: 6px;
     padding-bottom: 5px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.3);
@@ -1119,6 +1121,72 @@ footer p {
 
 /* 响应式布局 */
 @media (max-width: 768px) {
+    /* 移动端header优化 - 只显示大标题 */
+    header {
+        padding: 0.4rem 1rem;
+        min-width: 85%;
+        opacity: 0.9;
+    }
+    
+    header h1 {
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+        margin-bottom: 0;
+    }
+    
+    header .header-subtitle {
+        display: none; /* 移动端隐藏副标题 */
+    }
+    
+    header p {
+        display: none; /* 移动端隐藏描述文字 */
+    }
+    
+    /* 移动端地点详情显示优化 - 减少高度占用 */
+    .location-info {
+        max-height: 40vh; /* 减少高度占用 */
+        padding: 10px; /* 减少内边距 */
+        font-size: 0.8em; /* 缩小字体 */
+    }
+    
+    .location-info-header {
+        margin-bottom: 4px;
+        padding-bottom: 3px;
+    }
+    
+    .location-info-header h3 {
+        font-size: 1.1em; /* 缩小标题字体 */
+    }
+    
+    #location-name {
+        font-size: 1.3em; /* 缩小地点名称字体 */
+    }
+    
+    #location-province {
+        font-size: 0.8em; /* 缩小省份字体 */
+        margin: 3px 0 0 0;
+    }
+    
+    .location-details {
+        gap: 4px; /* 减少间距 */
+        padding-bottom: 2px;
+    }
+    
+    .info-section {
+        padding: 4px 6px; /* 减少内边距 */
+        min-width: calc(50% - 2px); /* 移动端显示2列 */
+        flex: 1 1 calc(50% - 2px);
+    }
+    
+    .info-section h5 {
+        font-size: 0.9em; /* 缩小标题字体 */
+    }
+    
+    .info-section p {
+        font-size: 0.8em; /* 缩小内容字体 */
+        line-height: 1.2;
+    }
+    
     .container {
         flex-direction: column;
     }
@@ -1137,11 +1205,6 @@ footer p {
     
     .location-details {
         grid-template-columns: 1fr;
-    }
-    
-    .location-info {
-        padding: 15px;
-        max-height: 60vh;
     }
 }
 
@@ -1365,16 +1428,16 @@ input[type="checkbox"] {
 
 .animation-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
+    gap: 10px;
     background: linear-gradient(135deg, var(--primary-color), #9a2323);
     color: var(--white-color);
     padding: 8px 12px; /* 减少内边距 */
     cursor: pointer;
     transition: all 0.3s ease;
-    /* 中国风边框装饰 */
-    border: 2px solid var(--accent-color);
-    border-bottom: none;
+    /* 移除边框 */
+    border: none;
     /* 竹简效果 */
     box-shadow: 
         3px 3px 0 rgba(0,0,0,0.2),

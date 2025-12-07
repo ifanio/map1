@@ -97,7 +97,6 @@ function initMapLayers() {
         // 标准地图 - 高德地图
         standard: L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
             subdomains: ['1', '2', '3', '4'],
-            attribution: '© 高德地图',
             maxZoom: 18
         }),
         // 卫星地图 - 高德卫星地图（包含标注图层）
@@ -105,13 +104,11 @@ function initMapLayers() {
             // 卫星影像底图（style=6）
             L.tileLayer('https://webst0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=6&x={x}&y={y}&z={z}', {
                 subdomains: ['1', '2', '3', '4'],
-                attribution: '© 高德地图',
                 maxZoom: 18
             }),
             // 标注图层（style=8，包含行政区划和路网）
             L.tileLayer('https://webst0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
                 subdomains: ['1', '2', '3', '4'],
-                attribution: '© 高德地图',
                 maxZoom: 18
             })
         ])
@@ -123,8 +120,10 @@ function initMapLayers() {
  * 创建地图实例，配置图层，初始化路线和标记点
  */
 function initMap() {
-    // 创建地图实例，中心设置在中国境内
-    map = L.map('map').setView(MAP_CONFIG.DEFAULT_CENTER, MAP_CONFIG.DEFAULT_ZOOM);
+    // 创建地图实例，中心设置在中国境内，禁用默认版权控制
+    map = L.map('map', {
+        attributionControl: false
+    }).setView(MAP_CONFIG.DEFAULT_CENTER, MAP_CONFIG.DEFAULT_ZOOM);
     
     // 初始化地图图层
     mapLayers = initMapLayers();
@@ -597,7 +596,6 @@ function initRouteAnimationControls() {
     if (voiceBroadcastCheckbox) {
         voiceBroadcastCheckbox.addEventListener('change', function() {
             animationState.enableVoiceBroadcast = this.checked;
-            console.log('语音播报:', this.checked ? '开启' : '关闭');
         });
     }
     
@@ -605,7 +603,6 @@ function initRouteAnimationControls() {
     if (mapSwitchCheckbox) {
         mapSwitchCheckbox.addEventListener('change', function() {
             animationState.enableMapSwitch = this.checked;
-            console.log('地图自动切换:', this.checked ? '开启' : '关闭');
             
             if (this.checked) {
                 // 如果重新开启地图自动切换，并且动画正在运行（无论是否暂停），重新启动定时器
@@ -627,7 +624,6 @@ function initRouteAnimationControls() {
     if (autoRestartCheckbox) {
         autoRestartCheckbox.addEventListener('change', function() {
             animationState.enableAutoRestart = this.checked;
-            console.log('自动继续模拟:', this.checked ? '开启' : '关闭');
         });
     }
     
@@ -651,7 +647,6 @@ let cachedStatusText = null;
 function clearRouteCache() {
     cachedRouteData = null;
     cacheKey = '';
-    console.log('路线数据缓存已清除');
 }
 
 /**
@@ -661,7 +656,6 @@ function clearRouteCache() {
 function clearDomCache() {
     cachedProgressBar = null;
     cachedStatusText = null;
-    console.log('DOM元素缓存已清除');
 }
 
 function getCurrentRouteData() {
@@ -968,7 +962,6 @@ function lerp(start, end, t) {
 function speakLocation(location) {
     // 检查语音播报开关状态
     if (!animationState.enableVoiceBroadcast) {
-        console.log('语音播报已关闭，跳过播报');
         // 直接继续动画
         animationState.isRunning = true;
         animationState.currentSegmentStartTime = null;
@@ -1058,7 +1051,6 @@ function speakLocation(location) {
         
         // Chrome浏览器可能需要等待voiceschanged事件
         if (voices.length === 0) {
-            console.log('语音列表为空，跳过语音播报，直接继续动画');
             // 直接继续动画
             animationState.isRunning = true;
             animationState.currentSegmentStartTime = null;
@@ -1075,8 +1067,6 @@ function speakLocation(location) {
             
             // 更新语音索引，为下一次播报做准备
             animationState.currentVoiceIndex = (animationState.currentVoiceIndex + 1) % chineseVoices.length;
-            
-            console.log(`使用语音角色: ${speech.voice.name} (${voiceIndex + 1}/${chineseVoices.length})`);
         }
         
         // 设置语音参数
@@ -1085,8 +1075,6 @@ function speakLocation(location) {
         
         // 语音事件处理
         speech.onend = function() {
-            console.log('语音播报结束，继续动画');
-            
             if (!animationState.isPaused) {
                 animationState.isRunning = true;
                 animationState.currentSegmentStartTime = null;
@@ -1122,7 +1110,6 @@ function speakLocation(location) {
         if (animationState.currentIndex < animationState.totalPoints - 1) {
             try {
                 animationState.animationId = requestAnimationFrame(animationLoop);
-                console.log('语音播报失败，动画继续，当前索引:', animationState.currentIndex);
             } catch (error) {
                 console.error('请求动画帧失败:', error);
                 // 如果请求动画帧失败，手动触发动画继续
@@ -1138,7 +1125,6 @@ function speakLocation(location) {
             if (cachedStatusText) {
                 cachedStatusText.textContent = '行程结束！';
             }
-            console.log('模拟行程结束（语音播报失败）');
         }
     }
 }
@@ -1408,7 +1394,6 @@ function animationLoop(timestamp) {
         
         // 检查是否启用自动继续功能
         if (animationState.enableAutoRestart) {
-            console.log('行程结束，准备自动继续模拟行程...');
             // 延迟后自动继续模拟行程
             setTimeout(autoRestartAnimation, animationState.autoRestartDelay);
         }
@@ -1428,7 +1413,6 @@ function animationLoop(timestamp) {
 function startMapSwitchTimer() {
     // 检查地图切换开关状态
     if (!animationState.enableMapSwitch) {
-        console.log('地图自动切换已关闭，跳过定时器启动');
         return;
     }
     
@@ -1461,7 +1445,7 @@ function startMapSwitchTimer() {
                 animationState.mapSwitchInterval = 8000; // 卫星地图显示8秒
                 animationState.mapSwitchTimer = setInterval(arguments.callee, animationState.mapSwitchInterval);
             }
-            console.log('地图已切换至:', animationState.currentMapType, '，下次切换间隔:', animationState.mapSwitchInterval, 'ms');
+            
         }
     }, animationState.mapSwitchInterval);
 }
@@ -1512,8 +1496,6 @@ function triggerLocationEmphasis(location) {
     setTimeout(() => {
         markerDiv.classList.remove('location-emphasis');
     }, 800); // 动画持续800ms
-    
-    console.log('触发地点强调动画:', location.name);
 }
 
 /**
@@ -1824,11 +1806,8 @@ function autoRestartAnimation() {
     
     // 检查是否已经手动停止或暂停
     if (animationState.isPaused || animationState.isRunning) {
-        console.log('动画已暂停或正在运行，跳过自动继续');
         return;
     }
-    
-    console.log('开始自动继续模拟行程...');
     
     try {
         // 重置动画状态，但保留当前路线和方向设置
@@ -1870,7 +1849,6 @@ function autoRestartAnimation() {
         // 重新开始动画循环
         try {
             animationState.animationId = requestAnimationFrame(animationLoop);
-            console.log('自动继续成功启动');
         } catch (error) {
             console.error('自动继续动画循环失败:', error);
             animationState.isRunning = false;
