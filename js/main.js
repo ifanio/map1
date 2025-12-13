@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 切换控制面板折叠状态
     function toggleControlPanel() {
         panelContent.classList.toggle('collapsed');
+        controlPanel.classList.toggle('collapsed');
         // 更新切换按钮的图标
         if (panelContent.classList.contains('collapsed')) {
             toggleControlButton.textContent = '▶';

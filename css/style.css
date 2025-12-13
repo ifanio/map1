@@ -315,6 +315,17 @@ header p {
     flex-direction: column;
     transform-origin: top right;
     animation: panelSlideIn 0.6s var(--elastic) 0.2s both;
+    /* 确保面板收起时不影响地图交互 */
+    pointer-events: auto;
+}
+
+/* 面板收起时，整个面板不拦截鼠标事件，只有头部可以点击 */
+.floating-control-panel.collapsed {
+    pointer-events: none;
+}
+
+.floating-control-panel.collapsed .panel-header {
+    pointer-events: auto;
 }
 
 @keyframes panelSlideIn {
@@ -1370,6 +1381,278 @@ input[type="checkbox"] {
     /* 中国风装饰 */
     background-image: linear-gradient(45deg, var(--light-gray) 25%, transparent 25%, transparent 50%, var(--light-gray) 50%, var(--light-gray) 75%, transparent 75%, transparent);
     background-size: 8px 8px;
+}
+
+/* 搜索容器样式 - 左下角 */
+.search-container {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 300px;
+    height: auto;
+    max-height: 70vh;
+    z-index: 1000;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transform-origin: bottom left;
+    animation: searchPanelSlideIn 0.6s var(--elastic) 0.4s both;
+    pointer-events: auto;
+}
+
+@keyframes searchPanelSlideIn {
+    0% {
+        transform: translateX(-100%) scale(0.8);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.search-container.collapsed {
+    pointer-events: none;
+}
+
+.search-container.collapsed .search-header {
+    pointer-events: auto;
+}
+
+/* 搜索面板头部样式 */
+.search-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    background: linear-gradient(135deg, var(--success-color), var(--primary-color));
+    color: var(--white-color);
+    cursor: pointer;
+    transition: all 0.3s var(--smooth);
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    box-shadow: var(--shadow-sm);
+    animation: searchHeaderGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes searchHeaderGlow {
+    0% {
+        box-shadow: var(--shadow-sm);
+    }
+    100% {
+        box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+    }
+}
+
+.search-header h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+    animation: textPulse 3s ease-in-out infinite;
+}
+
+.search-header:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--shadow-lg);
+}
+
+/* 搜索面板内容样式 */
+.search-panel {
+    padding: 15px;
+    overflow-y: auto;
+    position: relative;
+    background-color: rgba(255, 255, 255, 0.5) !important;
+    transform-origin: bottom;
+    transition: all 0.4s var(--smooth);
+    border: 1px solid var(--medium-gray);
+    border-top: none;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    height: auto;
+    max-height: 300px;
+    animation: searchContentFadeIn 0.5s ease-out 0.5s both;
+}
+
+@keyframes searchContentFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.search-panel.collapsed {
+    max-height: 0 !important;
+    padding: 0 !important;
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.95);
+    border: none !important;
+    overflow: hidden !important;
+}
+
+/* 搜索输入组样式 */
+.search-input-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+#address-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--medium-gray);
+    border-radius: var(--border-radius);
+    font-size: 0.85rem;
+    transition: var(--transition);
+    background-color: var(--white-color);
+}
+
+#address-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.search-button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: var(--border-radius);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: var(--white-color);
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+}
+
+.search-button:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-md);
+}
+
+.search-button:active {
+    transform: scale(0.95);
+}
+
+/* 搜索结果样式 */
+.search-results {
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: var(--white-color);
+    border-radius: var(--border-radius);
+    padding: 8px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--light-gray);
+}
+
+.search-result-item {
+    padding: 8px 10px;
+    margin-bottom: 5px;
+    background-color: var(--light-gray);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.8rem;
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.search-result-item:last-child {
+    margin-bottom: 0;
+}
+
+.search-result-item:hover {
+    background-color: #e8f5e8;
+    transform: translateX(3px);
+    box-shadow: var(--shadow-sm);
+    border-color: var(--success-color);
+}
+
+.search-result-item::before {
+    content: '\f3c5'; /* Font Awesome地图标记图标 */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    margin-right: 8px;
+    font-size: 0.9rem;
+    color: var(--success-color);
+}
+
+.search-result-item .result-name {
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+
+.search-result-item .result-address {
+    font-size: 0.75rem;
+    color: var(--dark-gray);
+    margin-top: 2px;
+}
+
+/* 加载状态样式 */
+.search-loading {
+    text-align: center;
+    padding: 10px;
+    color: var(--dark-gray);
+    font-size: 0.8rem;
+}
+
+.search-loading::after {
+    content: '...';
+    animation: loadingDots 1.5s infinite;
+}
+
+@keyframes loadingDots {
+    0%, 20% { content: '.'; }
+    40% { content: '..'; }
+    60%, 100% { content: '...'; }
+}
+
+/* 错误状态样式 */
+.search-error {
+    text-align: center;
+    padding: 10px;
+    color: var(--accent-color);
+    font-size: 0.8rem;
+    background-color: rgba(231, 76, 60, 0.1);
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .search-container {
+        width: 90%;
+        max-width: 280px;
+        bottom: 10px;
+        left: 10px;
+    }
+    
+    .search-panel {
+        max-height: 250px;
+    }
+    
+    .search-input-group {
+        flex-direction: column;
+    }
+    
+    .search-button {
+        width: 100%;
+        margin-top: 5px;
+    }
 }
 
 ::-webkit-scrollbar-thumb {

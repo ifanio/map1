@@ -85,6 +85,28 @@
             </div>
         </div>
         
+        <!-- 地址搜索框 - 左下角 -->
+        <div id="search-container" class="search-container">
+            <div class="search-header modern-panel-header">
+                <button id="toggle-search-panel" class="toggle-button modern-toggle-button">▼</button>
+                <h3>地址搜索</h3>
+            </div>
+            
+            <div id="search-panel" class="search-panel modern-panel-container">
+                <div class="form-group modern-form-group">
+                    <div class="search-input-group">
+                        <input type="text" id="address-input" class="form-control modern-form-control" placeholder="例如：北京市朝阳区" />
+                        <button id="search-button" class="search-button modern-btn modern-btn-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="search-results" class="search-results">
+                    <!-- 搜索结果将在这里显示 -->
+                </div>
+            </div>
+        </div>
+
         <!-- 悬浮控制面板 - 现代样式 -->
         <div id="floating-control-panel" class="floating-control-panel">
             <div class="panel-header modern-panel-header">
@@ -153,6 +175,7 @@
     <script src="js/data.js"></script>
         <script src="js/locationInfo.js"></script>
         <script src="js/map.js"></script>
+        <script src="js/search.js"></script>
         <script>
             // 页面加载完成后初始化地点信息数据库
             document.addEventListener('DOMContentLoaded', function() {
