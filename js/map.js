@@ -976,20 +976,20 @@ function speakLocation(location) {
         const speechTemplates = [
             {
                 intro: altitude > 500 ? 
-                    `第${animationState.dayCounter}天，到达${location.name}，${province}${regionSuffix}，海拔${altitude}米。` :
-                    `第${animationState.dayCounter}天，到达${location.name}，${province}${regionSuffix}。`,
+                    `第${animationState.dayCounter}站，到达${location.name}，${province}${regionSuffix}，海拔${altitude}米。` :
+                    `第${animationState.dayCounter}站，到达${location.name}，${province}${regionSuffix}。`,
                 culture: (info) => `${getCompleteSentence(info, 40)}`
             },
             {
                 intro: altitude > 500 ? 
-                    `第${animationState.dayCounter}天，来到${location.name}，${province}${regionSuffix}，海拔${altitude}米。` :
-                    `第${animationState.dayCounter}天，来到${location.name}，${province}${regionSuffix}。`,
+                    `第${animationState.dayCounter}站，来到${location.name}，${province}${regionSuffix}，海拔${altitude}米。` :
+                    `第${animationState.dayCounter}站，来到${location.name}，${province}${regionSuffix}。`,
                 culture: (info) => `${getCompleteSentence(info, 50)}`
             },
             {
                 intro: altitude > 500 ? 
-                    `第${animationState.dayCounter}天，抵达${location.name}，${province}${regionSuffix}，海拔${altitude}米。` :
-                    `第${animationState.dayCounter}天，抵达${location.name}，${province}${regionSuffix}。`,
+                    `第${animationState.dayCounter}站，抵达${location.name}，${province}${regionSuffix}，海拔${altitude}米。` :
+                    `第${animationState.dayCounter}站，抵达${location.name}，${province}${regionSuffix}。`,
                 culture: (info) => `${getCompleteSentence(info, 60)}`
             }
         ];
