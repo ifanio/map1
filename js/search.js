@@ -279,7 +279,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (typeof map !== 'undefined' && map) {
             clearInterval(checkMapReady);
             initSearchFunctionality();
-            console.log('搜索功能初始化成功');
         }
     }, 100);
     

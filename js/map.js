@@ -62,7 +62,6 @@ let mapLayers = {};
  */
 const animationState = {
     isRunning: false,
-    isPaused: false,
     currentRoute: 'g219',
     currentDirection: 'clockwise',
     currentLocationId: null,
@@ -71,7 +70,6 @@ const animationState = {
     speed: MAP_CONFIG.ANIMATION_SPEED,
     animationId: null,
     startTime: 0,
-    pausedTime: 0,
     currentSegmentStartTime: null,
     vehicleMarker: null,
     visitedPoints: [],
@@ -510,7 +508,6 @@ function initRouteAnimationControls() {
     const speedSlider = document.getElementById('animation-speed');
     const speedValue = document.getElementById('speed-value');
     const startBtn = document.getElementById('start-animation');
-    const pauseBtn = document.getElementById('pause-animation');
     const resetBtn = document.getElementById('reset-animation');
     const progressFill = document.getElementById('progress-fill');
     const statusText = document.getElementById('animation-status');
@@ -554,17 +551,6 @@ function initRouteAnimationControls() {
     // 开始按钮事件
     if (startBtn) {
         startBtn.addEventListener('click', startAnimation);
-    }
-    
-    // 暂停按钮事件
-    if (pauseBtn) {
-        pauseBtn.addEventListener('click', function() {
-    if (animationState.isPaused) {
-        resumeAnimation();
-    } else {
-        pauseAnimation();
-    }
-});
     }
     
     // 重置按钮事件
@@ -904,9 +890,7 @@ function updateStatusText() {
     const routeData = getCurrentRouteData();
     const currentPoint = routeData[animationState.currentIndex];
     
-    if (animationState.isPaused) {
-        cachedStatusText.textContent = `已暂停 - 当前位置: ${currentPoint.name}`;
-    } else if (animationState.isRunning) {
+    if (animationState.isRunning) {
         cachedStatusText.textContent = `行驶中 - ${currentPoint.name} (${animationState.currentIndex + 1}/${animationState.totalPoints})`;
     } else {
         cachedStatusText.textContent = '准备就绪';
@@ -1014,10 +998,20 @@ function speakLocation(location) {
         
         // Chrome浏览器可能需要等待voiceschanged事件
         if (voices.length === 0) {
-            // 直接继续动画
-            animationState.isRunning = true;
-            animationState.currentSegmentStartTime = null;
-            animationState.animationId = requestAnimationFrame(animationLoop);
+            // 重新尝试获取语音列表
+            setTimeout(() => {
+                voices = window.speechSynthesis.getVoices();
+                if (voices.length > 0) {
+                    // 语音列表已加载，重新执行整个语音播报逻辑
+                    speakLocation(location);
+                } else {
+                    // 语音列表仍然为空，停止播报并继续动画
+                    console.warn('语音播报：语音列表为空，跳过播报');
+                    animationState.isRunning = true;
+                    animationState.currentSegmentStartTime = null;
+                    animationState.animationId = requestAnimationFrame(animationLoop);
+                }
+            }, 50);
             return;
         }
         
@@ -1038,21 +1032,17 @@ function speakLocation(location) {
         
         // 语音事件处理
         speech.onend = function() {
-            if (!animationState.isPaused) {
-                animationState.isRunning = true;
-                animationState.currentSegmentStartTime = null;
-                animationState.animationId = requestAnimationFrame(animationLoop);
-            }
+            animationState.isRunning = true;
+            animationState.currentSegmentStartTime = null;
+            animationState.animationId = requestAnimationFrame(animationLoop);
         };
         
         speech.onerror = function(event) {
             console.warn('语音播报错误:', event.error);
             // 即使语音播报失败，也要继续动画
-            if (!animationState.isPaused) {
-                animationState.isRunning = true;
-                animationState.currentSegmentStartTime = null;
-                animationState.animationId = requestAnimationFrame(animationLoop);
-            }
+            animationState.isRunning = true;
+            animationState.currentSegmentStartTime = null;
+            animationState.animationId = requestAnimationFrame(animationLoop);
         };
         
         // 更新状态为语音播报中
@@ -1077,9 +1067,7 @@ function speakLocation(location) {
                 console.error('请求动画帧失败:', error);
                 // 如果请求动画帧失败，手动触发动画继续
                 setTimeout(() => {
-                    if (!animationState.isPaused) {
-                        animationState.animationId = requestAnimationFrame(animationLoop);
-                    }
+                    animationState.animationId = requestAnimationFrame(animationLoop);
                 }, 100);
             }
         } else {
@@ -1379,8 +1367,8 @@ function startMapSwitchTimer() {
     
     // 启动新的定时器，根据当前地图类型设置不同的切换间隔
     animationState.mapSwitchTimer = setInterval(function() {
-        // 检查是否应该切换地图（动画运行中且未暂停，或者语音播报期间，或者动画已开始但正在语音播报）
-        if ((animationState.isRunning && !animationState.isPaused) || 
+        // 检查是否应该切换地图（动画运行中，或者语音播报期间）
+        if (animationState.isRunning || 
             (!animationState.isRunning && window.speechSynthesis.speaking) ||
             (animationState.startTime !== null)) {
             // 切换地图类型
@@ -1482,10 +1470,8 @@ function startAnimation() {
         animationState.totalPoints = routeData.length;
         animationState.currentIndex = 0;
         animationState.startTime = null;
-        animationState.pausedTime = 0;
         animationState.currentSegmentStartTime = null;
         animationState.isRunning = true;
-        animationState.isPaused = false;
         animationState.dayCounter = 1; // 重置天数计数器
         
         // 启动地图切换定时器
@@ -1509,6 +1495,9 @@ function startAnimation() {
             duration: 1
         });
         
+        // 为第一个地点添加强调效果，使其缩放更明显
+        triggerLocationEmphasis(currentPoint);
+        
         // 立即播报第一个地点的语音
         if (currentPoint && currentPoint.name) {
             // 更新车辆弹出窗口内容
@@ -1521,9 +1510,8 @@ function startAnimation() {
                 cachedStatusText.textContent = `行驶中 - ${currentPoint.name} (${animationState.currentIndex + 1}/${animationState.totalPoints})`;
             }
             
-            // 暂停动画，等待语音播报完成
+            // 等待语音播报完成
             animationState.isRunning = false;
-            animationState.isPaused = false;
             
             // 立即更新UI状态，确保暂停按钮在语音播报期间可用
             updateUIState();
@@ -1533,7 +1521,6 @@ function startAnimation() {
             updateLocationInfoDisplay(currentPoint.name);
         } else {
             animationState.isRunning = true;
-            animationState.isPaused = false;
             
             try {
                 animationState.animationId = requestAnimationFrame(animationLoop);
@@ -1548,106 +1535,11 @@ function startAnimation() {
     } catch (error) {
         console.error('开始动画过程中发生错误:', error);
         animationState.isRunning = false;
-        animationState.isPaused = false;
         updateUIState();
     }
 }
 
-/**
- * 暂停动画
- */
-function pauseAnimation() {
-    // 边界检查：确保动画状态有效
-    if (!animationState || typeof animationState !== 'object') {
-        console.error('动画状态无效，无法暂停动画');
-        return;
-    }
-    
-    // 如果动画正在运行，或者正在语音播报期间（isRunning为false但语音正在播放），都可以暂停
-    if (animationState.isRunning || (!animationState.isRunning && window.speechSynthesis.speaking)) {
-        try {
-            animationState.isRunning = false;
-            animationState.isPaused = true;
-            
-            // 计算暂停时间
-            if (animationState.startTime) {
-                animationState.pausedTime += performance.now() - animationState.startTime;
-                animationState.startTime = 0;
-            }
-            
-            // 停止语音播报
-            if (window.speechSynthesis && window.speechSynthesis.speaking) {
-                try {
-                    window.speechSynthesis.cancel();
-                } catch (error) {
-                    console.warn('停止语音播报失败:', error);
-                }
-            }
-            
-            // 停止地图切换定时器
-            stopMapSwitchTimer();
-            
-            // 停止动画帧
-            if (animationState.animationId) {
-                try {
-                    cancelAnimationFrame(animationState.animationId);
-                    animationState.animationId = null;
-                } catch (error) {
-                    console.warn('取消动画帧失败:', error);
-                }
-            }
-            
-            updateUIState();
-        } catch (error) {
-            console.error('暂停动画过程中发生错误:', error);
-        }
-    }
-}
 
-/**
- * 继续动画
- */
-function resumeAnimation() {
-    // 边界检查：确保动画状态有效
-    if (!animationState || typeof animationState !== 'object') {
-        console.error('动画状态无效，无法继续动画');
-        return;
-    }
-    
-    if (animationState.isPaused) {
-        try {
-            animationState.isRunning = true;
-            animationState.isPaused = false;
-            
-            // 计算继续时间
-            if (animationState.pausedTime > 0) {
-                animationState.startTime = performance.now() - animationState.pausedTime;
-                animationState.pausedTime = 0;
-            }
-            
-            animationState.currentSegmentStartTime = null; // 重置当前段起始时间
-            
-            // 重新启动地图切换定时器
-            startMapSwitchTimer();
-            
-            // 重新开始动画循环
-            try {
-                animationState.animationId = requestAnimationFrame(animationLoop);
-            } catch (error) {
-                console.error('重新开始动画循环失败:', error);
-                animationState.isRunning = false;
-                animationState.isPaused = true;
-            }
-            
-            updateUIState();
-        } catch (error) {
-            console.error('继续动画过程中发生错误:', error);
-            animationState.isRunning = false;
-            animationState.isPaused = true;
-            updateUIState();
-        }
-    }
-}
 
 /**
  * 重置动画
@@ -1678,10 +1570,8 @@ function resetAnimation() {
         
         // 重置状态
         animationState.isRunning = false;
-        animationState.isPaused = false;
         animationState.currentIndex = 0;
         animationState.startTime = 0;
-        animationState.pausedTime = 0;
         animationState.currentSegmentStartTime = null;
         animationState.dayCounter = 1; // 重置天数计数器
         
@@ -1748,8 +1638,8 @@ function autoRestartAnimation() {
         return;
     }
     
-    // 检查是否已经手动停止或暂停
-    if (animationState.isPaused || animationState.isRunning) {
+    // 检查动画是否正在运行
+    if (animationState.isRunning) {
         return;
     }
     
@@ -1757,11 +1647,9 @@ function autoRestartAnimation() {
         // 重置动画状态，但保留当前路线和方向设置
         animationState.currentIndex = 0;
         animationState.startTime = 0;
-        animationState.pausedTime = 0;
         animationState.currentSegmentStartTime = null;
         animationState.dayCounter = 1; // 重置天数计数器
         animationState.isRunning = true;
-        animationState.isPaused = false;
         
         // 清除路线数据缓存，确保获取最新数据
         clearRouteCache();
@@ -1821,25 +1709,12 @@ function updateUIState() {
     
     try {
         const startBtn = document.getElementById('start-animation');
-        const pauseBtn = document.getElementById('pause-animation');
         const resetBtn = document.getElementById('reset-animation');
         const routeSelect = document.getElementById('route-select');
         
-        // 检查是否正在语音播报期间
-        let isSpeaking = false;
-        if (window.speechSynthesis && typeof window.speechSynthesis.speaking === 'boolean') {
-            isSpeaking = window.speechSynthesis.speaking;
-        }
-        
         if (startBtn) {
-            // 开始按钮在动画运行且未暂停时禁用，其他情况可用
-            startBtn.disabled = animationState.isRunning && !animationState.isPaused;
-        }
-        
-        if (pauseBtn) {
-            // 暂停按钮在动画运行且未暂停时可用，或者在语音播报期间也可用
-            pauseBtn.disabled = !((animationState.isRunning && !animationState.isPaused) || 
-                                 (!animationState.isRunning && isSpeaking && !animationState.isPaused));
+            // 开始按钮在动画运行时禁用
+            startBtn.disabled = animationState.isRunning;
         }
         
         if (resetBtn) {
@@ -1849,7 +1724,7 @@ function updateUIState() {
         }
         
         if (routeSelect) {
-            routeSelect.disabled = animationState.isRunning && !animationState.isPaused;
+            routeSelect.disabled = animationState.isRunning;
         }
     } catch (error) {
         console.error('更新UI状态过程中发生错误:', error);
