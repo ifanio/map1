@@ -1034,6 +1034,11 @@ footer p {
     opacity: 0.8;
 }
 
+/* 美食列表项使用美食图标 */
+.info-section:nth-of-type(2) .attraction-item::before {
+    content: '🍽️';
+}
+
 /* 响应式布局 - 中国风适配 */
 @media (max-width: 1200px) {
     header h1 {

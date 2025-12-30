@@ -307,7 +307,7 @@ function generateLocationsList() {
     const routes = [
         { id: 'g219', name: 'G219 东兴-喀纳斯', color: '#ff8c00', locations: G219Locations },
         { id: 'g331', name: 'G331 丹东-阿勒泰', color: '#32cd32', locations: G331Locations }, /* 柔和的草绿色 */
-{ id: 'g228', name: 'G228 丹东-东兴', color: '#1e90ff', locations: G228Locations } /* 海蓝色 */
+        { id: 'g228', name: 'G228 丹东-东兴', color: '#1e90ff', locations: G228Locations } /* 海蓝色 */
     ];
     
     routes.forEach(route => {
@@ -782,10 +782,10 @@ function createVehicleMarker() {
     
     const startPoint = routeData[0];
     
-    // 创建中国风车辆图标 - 现代汽车样式
+    // 创建中国风车辆图标 - SUV样式
     const vehicleIcon = L.divIcon({
         className: 'vehicle-icon',
-        html: '<div style="font-size: 36px; color: #b22222; text-shadow: 2px 2px 6px rgba(0,0,0,0.4);">🚗</div>',
+        html: '<div style="font-size: 36px; color: #b22222; text-shadow: 2px 2px 6px rgba(0,0,0,0.4);">🚙</div>',
         iconSize: [60, 60],
         iconAnchor: [30, 30],
         className: 'chinese-vehicle-icon'
@@ -957,36 +957,19 @@ function speakLocation(location) {
             regionSuffix = '特别行政区';
         }
         
-        const speechTemplates = [
-            {
-                intro: altitude > 500 ? 
-                    `第${animationState.dayCounter}站，到达${location.name}，${province}${regionSuffix}，海拔${altitude}米。` :
-                    `第${animationState.dayCounter}站，到达${location.name}，${province}${regionSuffix}。`,
-                culture: (info) => `${getCompleteSentence(info, 40)}`
-            },
-            {
-                intro: altitude > 500 ? 
-                    `第${animationState.dayCounter}站，来到${location.name}，${province}${regionSuffix}，海拔${altitude}米。` :
-                    `第${animationState.dayCounter}站，来到${location.name}，${province}${regionSuffix}。`,
-                culture: (info) => `${getCompleteSentence(info, 50)}`
-            },
-            {
-                intro: altitude > 500 ? 
-                    `第${animationState.dayCounter}站，抵达${location.name}，${province}${regionSuffix}，海拔${altitude}米。` :
-                    `第${animationState.dayCounter}站，抵达${location.name}，${province}${regionSuffix}。`,
-                culture: (info) => `${getCompleteSentence(info, 60)}`
-            }
-        ];
-        
-        // 随机选择一个语音模板，增加变化性
-        const template = speechTemplates[Math.floor(Math.random() * speechTemplates.length)];
+        const speechTemplate = {
+            intro: altitude >= 1000 ? 
+                `第${animationState.dayCounter}站，到达${location.name}，${province}${regionSuffix}，海拔${altitude}米。` :
+                `第${animationState.dayCounter}站，到达${location.name}，${province}${regionSuffix}。`,
+            culture: (info) => `${getCompleteSentences(info, 2)}`
+        };
         
         // 构建语音文本
-        let speechText = template.intro;
+        let speechText = speechTemplate.intro;
         
         // 添加文化特色（风土人情）
         if (locationInfo.culture && locationInfo.culture !== '暂无详细信息') {
-            speechText += template.culture(locationInfo.culture);
+            speechText += speechTemplate.culture(locationInfo.culture);
         }
         
         speech.text = speechText;
@@ -1080,56 +1063,27 @@ function speakLocation(location) {
     }
 }
 
-    // 辅助函数：获取完整的句子，确保不截断句子
-    function getCompleteSentence(text, maxLength) {
+    // 辅助函数：获取指定数量的完整句子
+    function getCompleteSentences(text, sentenceCount) {
         if (!text || text === '暂无详细信息') return '';
         
-        // 按句子分隔符分割文本
+        // 按句子分隔符分割文本，保留分隔符
         const sentences = text.split(/[。！？]/).filter(sentence => sentence.trim().length > 0);
         
         if (sentences.length === 0) return '';
         
-        // 找到第一个完整的句子，确保不超过最大长度
-        let result = sentences[0];
+        // 计算要返回的句子数量
+        const actualCount = Math.min(sentenceCount, sentences.length);
         
-        // 如果第一个句子太长，尝试找到合适的断点
-        if (result.length > maxLength) {
-            // 在标点符号处断句
-            const punctuation = /[，；、]/;
-            const parts = result.split(punctuation);
-            
-            let current = '';
-            for (const part of parts) {
-                const temp = current ? current + '，' + part : part;
-                if (temp.length <= maxLength) {
-                    current = temp;
-                } else {
-                    break;
-                }
-            }
-            
-            if (current) {
-                result = current + '。';
-            } else {
-                // 如果还是太长，按字符数截取，但确保在词语边界
-                result = result.substring(0, maxLength - 1);
-                // 找到最后一个标点符号或空格
-                const lastPunctuation = Math.max(
-                    result.lastIndexOf('，'),
-                    result.lastIndexOf('；'),
-                    result.lastIndexOf('、'),
-                    result.lastIndexOf(' ')
-                );
-                
-                if (lastPunctuation > 0) {
-                    result = result.substring(0, lastPunctuation + 1) + '。';
-                } else {
-                    result += '。';
-                }
-            }
-        } else {
-            result += '。';
-        }
+        // 获取指定数量的完整句子
+        const selectedSentences = sentences.slice(0, actualCount);
+        
+        // 重新组装句子，每个句子后加句号
+        const result = selectedSentences.map(sentence => {
+            // 清理句子前后空格，确保句子的完整性
+            const cleanSentence = sentence.trim();
+            return cleanSentence ? cleanSentence + '。' : '';
+        }).join('');
         
         return result;
     }
