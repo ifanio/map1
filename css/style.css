@@ -1189,20 +1189,83 @@ footer p {
         line-height: 1.2;
     }
     
-    .container {
-        flex-direction: column;
-    }
+    /* 移除不必要的flex-direction属性，因为.container没有设置display: flex */
     
     #map {
-        height: 60vh;
+        height: 100%;
         width: 100%;
     }
     
+    /* 在移动端隐藏搜索面板 */
+    .search-container {
+        display: none;
+    }
+    
+    /* 线路控制开关按钮样式 */
+    .route-panel-toggle-button {
+        position: absolute;
+        top: 20px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+        border: 2px solid var(--white-color);
+        box-shadow: var(--shadow-lg), 0 0 15px rgba(255,64,129,0.3);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        z-index: 1001;
+        transition: var(--transition);
+        color: var(--white-color);
+        overflow: hidden;
+    }
+    
+    .route-panel-toggle-button:hover {
+        transform: scale(1.1) rotate(10deg);
+        box-shadow: var(--shadow-lg), 0 0 30px rgba(255,64,129,0.5);
+    }
+    
+    /* 隐藏类 */
+    .hidden {
+        display: none !important;
+    }
+    
+    /* 移动端线路控制面板样式优化 */
     .floating-control-panel {
-        position: relative;
-        width: 100%;
-        max-width: none;
-        margin: 10px 0;
+        position: absolute;
+        top: 80px;
+        right: 10px;
+        width: 90%;
+        max-width: 280px;
+        max-height: 60vh;
+        z-index: 1000;
+        overflow: hidden;
+    }
+    
+    .floating-control-panel .panel-content {
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+    
+    /* 确保移动端面板内容收起样式正确 */
+    .floating-control-panel .panel-content.collapsed {
+        max-height: 0 !important;
+        padding: 0 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transform: scale(0.95) !important;
+    }
+    
+    /* 确保移动端面板收起样式正确 */
+    .floating-control-panel.collapsed {
+        pointer-events: none !important;
+    }
+    
+    .floating-control-panel.collapsed .panel-header {
+        pointer-events: auto !important;
     }
     
     .location-details {

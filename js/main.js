@@ -79,6 +79,16 @@ document.addEventListener('DOMContentLoaded', function() {
             togglePanel();
         });
     }
+    
+    // 线路控制面板显示/隐藏切换功能
+    const toggleRoutePanelButton = document.getElementById('toggle-route-panel');
+    const floatingControlPanel = document.getElementById('floating-control-panel');
+    
+    if (toggleRoutePanelButton && floatingControlPanel) {
+        toggleRoutePanelButton.addEventListener('click', function() {
+            floatingControlPanel.classList.toggle('hidden');
+        });
+    }
 });
 
 // 页面可见性变化处理
